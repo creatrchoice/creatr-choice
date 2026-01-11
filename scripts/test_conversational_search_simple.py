@@ -210,7 +210,7 @@ async def main():
         print("\n🎉 Conversational search core functionality is working correctly!")
         print("\n📝 Next Steps:")
         print("   1. Start the API server: uvicorn main:app --reload")
-        print("   2. Test with curl (see CONVERSATIONAL_SEARCH.md)")
+        print("   2. Test with curl (see docs/CONVERSATIONAL_SEARCH.md)")
         print("   3. Or test the full integration with database")
     else:
         print(f"\n⚠️  {total - passed} test(s) failed")

@@ -8,7 +8,6 @@ class EmbeddingProvider(str, Enum):
     """Embedding provider options."""
     AZURE_OPENAI = "azure_openai"
     OPENAI = "openai"
-    SENTENCE_TRANSFORMERS = "sentence_transformers"
 
 
 class EmbeddingConfig:

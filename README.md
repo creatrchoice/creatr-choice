@@ -71,6 +71,17 @@ The API will be available at:
 - `POST /api/v1/influencers/analyze` - Analyze a new influencer
 - `GET /api/v1/influencers/trending/categories` - Get trending categories
 
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](./docs/) folder:
+
+- **[Setup Guide](./docs/SETUP.md)** - Complete setup instructions for Azure resources and local development
+- **[API Examples](./docs/API_EXAMPLES.md)** - Detailed API usage examples and curl commands
+- **[Architecture Flow](./docs/ARCHITECTURE_FLOW.md)** - System architecture and data flow diagrams
+- **[Docker Deployment](./docs/DOCKER.md)** - Docker build and deployment guide
+- **[Conversational Search](./docs/CONVERSATIONAL_SEARCH.md)** - Chat-based search feature documentation
+- **[Test Analysis](./docs/TEST_ANALYSIS.md)** - Testing documentation and analysis
+
 ## Project Structure
 
 ```
@@ -87,6 +98,8 @@ ai-influener-discovery/
 │   │   └── influencer.py
 │   └── services/
 │       └── influencer_service.py
+├── docs/                    # Documentation files
+├── scripts/                 # Utility scripts
 ├── main.py
 ├── requirements.txt
 ├── pyproject.toml

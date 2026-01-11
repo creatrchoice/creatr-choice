@@ -369,7 +369,7 @@ async def main():
     
     print("\n📝 Next Steps:")
     print("   1. Start the API server: uvicorn main:app --reload")
-    print("   2. Test with curl (see API_EXAMPLES.md)")
+    print("   2. Test with curl (see docs/API_EXAMPLES.md)")
     print("   3. Or uncomment API test in this script")
     print("=" * 60)
 

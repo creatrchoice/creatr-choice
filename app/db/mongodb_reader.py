@@ -1,8 +1,13 @@
 """MongoDB reader for migration."""
 from typing import Iterator, Dict, Any, Optional
-import pymongo
-from pymongo import MongoClient
 from app.core.config import settings
+
+try:
+    from pymongo import MongoClient
+    PYMONGO_AVAILABLE = True
+except ImportError:
+    PYMONGO_AVAILABLE = False
+    MongoClient = None  # type: ignore
 
 
 class MongoDBReader:
@@ -16,6 +21,8 @@ class MongoDBReader:
     
     def connect(self) -> None:
         """Connect to MongoDB."""
+        if not PYMONGO_AVAILABLE:
+            raise ImportError("pymongo is not installed. Install it for migration scripts: pip install pymongo")
         if not settings.LOCAL_MONGODB_URI:
             raise ValueError("LOCAL_MONGODB_URI not configured")
         
