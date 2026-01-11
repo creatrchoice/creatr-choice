@@ -1,13 +1,16 @@
-version: '3.8'
-
 services:
   api:
     build:
       context: .
       dockerfile: Dockerfile
+      tags:
+        - influencer-api:latest
+    image: influencer-api:latest
     container_name: influencer-api
     ports:
-      - "8000:8000"
+      - "${PORT:-8000}:8000"
+    env_file:
+      - .env
     environment:
       # Azure Cosmos DB
       - AZURE_COSMOS_ENDPOINT=${AZURE_COSMOS_ENDPOINT}
@@ -27,10 +30,14 @@ services:
       - AZURE_OPENAI_CHAT_DEPLOYMENT=${AZURE_OPENAI_CHAT_DEPLOYMENT:-gpt-4o}
       - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION:-2024-02-15-preview}
       
+      # OpenAI (Optional - Fallback)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      
       # Application Settings
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
-      - ENVIRONMENT=production
-      - DEBUG=false
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DEBUG=${DEBUG:-false}
+      - PORT=8000
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import http.client; c = http.client.HTTPConnection('localhost', 8000); c.request('GET', '/health'); r = c.getresponse(); exit(0 if r.status == 200 else 1)"]
@@ -40,6 +47,18 @@ services:
       start_period: 40s
     networks:
       - influencer-network
+    # Uncomment to add log volume (optional)
+    # volumes:
+    #   - ./logs:/var/log/influencer-api
+    # Resource limits (uncomment and adjust as needed)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '2'
+    #       memory: 2G
+    #     reservations:
+    #       cpus: '1'
+    #       memory: 1G
 
 networks:
   influencer-network:

@@ -48,6 +48,12 @@ cp .env.example .env
 
 5. Run the application:
 
+**Option A: Using Docker Compose (Recommended)**
+```bash
+docker-compose up -d
+```
+
+**Option B: Using Python directly**
 ```bash
 uvicorn main:app --reload
 ```
@@ -76,6 +82,7 @@ The API will be available at:
 Comprehensive documentation is available in the [`docs/`](./docs/) folder:
 
 - **[Setup Guide](./docs/SETUP.md)** - Complete setup instructions for Azure resources and local development
+- **[VM Deployment Guide](./docs/VM_DEPLOYMENT.md)** - Manual Docker build and deployment on Azure VM
 - **[API Examples](./docs/API_EXAMPLES.md)** - Detailed API usage examples and curl commands
 - **[Architecture Flow](./docs/ARCHITECTURE_FLOW.md)** - System architecture and data flow diagrams
 - **[Docker Deployment](./docs/DOCKER.md)** - Docker build and deployment guide

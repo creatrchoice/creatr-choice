@@ -1,0 +1,42 @@
+# Production docker-compose configuration
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  api:
+    # Use pre-built image instead of building
+    # image: your-registry.azurecr.io/influencer-api:latest
+    # build:  # Comment out build if using pre-built image
+    
+    # Production environment
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    # Restart policy
+    restart: always
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Health check with stricter settings
+    healthcheck:
+      test: ["CMD", "python", "-c", "import http.client; c = http.client.HTTPConnection('localhost', 8000); c.request('GET', '/health'); r = c.getresponse(); exit(0 if r.status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

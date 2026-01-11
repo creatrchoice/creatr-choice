@@ -29,6 +29,12 @@ This folder contains comprehensive documentation for the AI Influencer Discovery
   - Database schema
 
 ### Deployment
+- **[VM_DEPLOYMENT.md](./VM_DEPLOYMENT.md)** - Manual VM deployment guide
+  - Clone repository on VM
+  - Configure secrets and environment variables
+  - Build and run Docker image manually
+  - Security best practices
+  
 - **[DOCKER.md](./DOCKER.md)** - Docker deployment guide
   - Building Docker images
   - Running with Docker Compose
@@ -56,9 +62,10 @@ This folder contains comprehensive documentation for the AI Influencer Discovery
 ## 🚀 Quick Links
 
 - **New to the project?** Start with [SETUP.md](./SETUP.md)
+- **Deploying on VM?** See [VM_DEPLOYMENT.md](./VM_DEPLOYMENT.md)
 - **Want to use the API?** Check [API_EXAMPLES.md](./API_EXAMPLES.md)
 - **Understanding the system?** Read [ARCHITECTURE_FLOW.md](./ARCHITECTURE_FLOW.md)
-- **Deploying to production?** See [DOCKER.md](./DOCKER.md)
+- **Deploying to containers?** See [DOCKER.md](./DOCKER.md)
 
 ## 📝 Additional Resources
 

@@ -38,6 +38,9 @@ ENV/
 .env.local
 .env.*.local
 
+# Docker Compose overrides (local development)
+docker-compose.override.yml
+
 # Testing
 .pytest_cache/
 .coverage
