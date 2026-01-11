@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      tags:
-        - influencer-api:latest
     image: influencer-api:latest
     container_name: influencer-api
     ports:
