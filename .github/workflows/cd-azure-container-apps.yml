@@ -1,0 +1,169 @@
+name: CD - Deploy to Azure Container Apps
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  AZURE_RESOURCE_GROUP: influencer-api-rg
+  CONTAINER_APP_NAME: influencer-api
+  CONTAINER_APP_ENV: influencer-api-env
+  REGISTRY_NAME: ${{ secrets.AZURE_ACR_NAME }}
+  LOCATION: eastus
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to Container Apps
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Extract tag name
+        id: tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "Tag name: $TAG_NAME"
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Note about image push
+        run: |
+          echo "⚠️  Image push is disabled. Please push the image manually to ACR:"
+          echo "   ${{ env.REGISTRY_NAME }}.azurecr.io/influencer-api:${{ steps.tag.outputs.tag }}"
+          echo ""
+          echo "To push manually:"
+          echo "   docker tag influencer-api:${{ steps.tag.outputs.tag }} ${{ env.REGISTRY_NAME }}.azurecr.io/influencer-api:${{ steps.tag.outputs.tag }}"
+          echo "   az acr login --name ${{ env.REGISTRY_NAME }}"
+          echo "   docker push ${{ env.REGISTRY_NAME }}.azurecr.io/influencer-api:${{ steps.tag.outputs.tag }}"
+
+      - name: Create resource group if it doesn't exist
+        run: |
+          az group create \
+            --name ${{ env.AZURE_RESOURCE_GROUP }} \
+            --location ${{ env.LOCATION }} || true
+
+      - name: Create Container Apps environment if it doesn't exist
+        run: |
+          az containerapp env create \
+            --name ${{ env.CONTAINER_APP_ENV }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --location ${{ env.LOCATION }} || true
+
+      - name: Create or update Container App
+        run: |
+          # Check if container app exists
+          if az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} &>/dev/null; then
+            echo "Updating existing container app..."
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --image ${{ env.REGISTRY_NAME }}.azurecr.io/influencer-api:${{ steps.tag.outputs.tag }} \
+              --registry-server ${{ env.REGISTRY_NAME }}.azurecr.io \
+              --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
+              --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
+              --set-env-vars \
+                AZURE_COSMOS_ENDPOINT="${{ secrets.AZURE_COSMOS_ENDPOINT }}" \
+                AZURE_COSMOS_KEY="${{ secrets.AZURE_COSMOS_KEY }}" \
+                AZURE_COSMOS_DATABASE="${{ secrets.AZURE_COSMOS_DATABASE }}" \
+                AZURE_COSMOS_CONTAINER="${{ secrets.AZURE_COSMOS_CONTAINER }}" \
+                AZURE_SEARCH_ENDPOINT="${{ secrets.AZURE_SEARCH_ENDPOINT }}" \
+                AZURE_SEARCH_KEY="${{ secrets.AZURE_SEARCH_KEY }}" \
+                AZURE_SEARCH_INDEX_NAME="${{ secrets.AZURE_SEARCH_INDEX_NAME }}" \
+                AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+                AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+                AZURE_OPENAI_DEPLOYMENT_NAME="${{ secrets.AZURE_OPENAI_DEPLOYMENT_NAME }}" \
+                AZURE_OPENAI_CHAT_DEPLOYMENT="${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT }}" \
+                AZURE_OPENAI_API_VERSION="${{ secrets.AZURE_OPENAI_API_VERSION }}" \
+                CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
+                ENVIRONMENT=production \
+                DEBUG=false \
+              --cpu 1.0 \
+              --memory 2.0Gi \
+              --min-replicas 1 \
+              --max-replicas 10
+          else
+            echo "Creating new container app..."
+            az containerapp create \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+              --environment ${{ env.CONTAINER_APP_ENV }} \
+              --image ${{ env.REGISTRY_NAME }}.azurecr.io/influencer-api:${{ steps.tag.outputs.tag }} \
+              --registry-server ${{ env.REGISTRY_NAME }}.azurecr.io \
+              --registry-username ${{ secrets.AZURE_ACR_USERNAME }} \
+              --registry-password ${{ secrets.AZURE_ACR_PASSWORD }} \
+              --target-port 8000 \
+              --ingress external \
+              --env-vars \
+                AZURE_COSMOS_ENDPOINT="${{ secrets.AZURE_COSMOS_ENDPOINT }}" \
+                AZURE_COSMOS_KEY="${{ secrets.AZURE_COSMOS_KEY }}" \
+                AZURE_COSMOS_DATABASE="${{ secrets.AZURE_COSMOS_DATABASE }}" \
+                AZURE_COSMOS_CONTAINER="${{ secrets.AZURE_COSMOS_CONTAINER }}" \
+                AZURE_SEARCH_ENDPOINT="${{ secrets.AZURE_SEARCH_ENDPOINT }}" \
+                AZURE_SEARCH_KEY="${{ secrets.AZURE_SEARCH_KEY }}" \
+                AZURE_SEARCH_INDEX_NAME="${{ secrets.AZURE_SEARCH_INDEX_NAME }}" \
+                AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+                AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+                AZURE_OPENAI_DEPLOYMENT_NAME="${{ secrets.AZURE_OPENAI_DEPLOYMENT_NAME }}" \
+                AZURE_OPENAI_CHAT_DEPLOYMENT="${{ secrets.AZURE_OPENAI_CHAT_DEPLOYMENT }}" \
+                AZURE_OPENAI_API_VERSION="${{ secrets.AZURE_OPENAI_API_VERSION }}" \
+                CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
+                ENVIRONMENT=production \
+                DEBUG=false \
+              --cpu 1.0 \
+              --memory 2.0Gi \
+              --min-replicas 1 \
+              --max-replicas 10
+          fi
+
+      - name: Get Container App URL
+        id: get-url
+        run: |
+          URL=$(az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          echo "url=https://$URL" >> $GITHUB_OUTPUT
+          echo "Container App is available at: https://$URL"
+
+      - name: Health check
+        run: |
+          sleep 30
+          URL=$(az containerapp show \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          curl -f https://$URL/health || exit 1
+
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Container App:** ${{ env.CONTAINER_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ env.REGISTRY_NAME }}.azurecr.io/influencer-api:${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${{ steps.get-url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
