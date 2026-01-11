@@ -1,5 +1,5 @@
 # Multi-stage build for optimized production image
-FROM python:3.9-slim as builder
+FROM python:3.9-slim AS builder
 
 # Set working directory
 WORKDIR /app
