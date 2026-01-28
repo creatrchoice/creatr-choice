@@ -1,63 +1,63 @@
 {
   "brands": {
-    "Giva": {
+    "giva": {
       "sheet_id": "14c-S-3PqylZVn30Y2ELz22SJ18vdTOikD3X4RORW4sc",
       "category": "Jewelry & Accessories",
       "status": "available"
     },
-    "Nykaa": {
+    "nykaa": {
       "sheet_id": "1nuME1mb8qsjyDpz13Nm26NXD-ZsTxyrL__Xd2ufWEJs",
       "category": "Beauty & Skincare",
       "status": "available"
     },
-    "Savana": {
+    "savana": {
       "sheet_id": "168ZW6nOzNUS62aCId_YyVg7firlX7tobcAjQw8eFaMc",
       "category": "Fashion & Lifestyle",
       "status": "available"
     },
-    "NewMe": {
+    "newme": {
       "sheet_id": "1SZZReH5tVgG9attNwemlKVETYeQhZ4cZk4BdeZs6j6w",
       "category": "Fashion & Lifestyle",
       "status": "available"
     },
-    "Snitch": {
+    "snitch": {
       "sheet_id": "1QTMB-j1dw30z9Fw4Y9rSs9xPGP_YRGc-J7b3irAbuRY",
       "category": "Fashion & Lifestyle",
       "status": "available"
     },
-    "Aqualogica": {
+    "aqualogica": {
       "sheet_id": "1kB3VHE1Rk4berWAU4dVDXutWmpoUglvZYgQcW7m3RWg",
       "category": "Beauty & Skincare",
       "status": "available"
     },
-    "Dot & Key": {
+    "dot & key": {
       "sheet_id": "1_hfIIpLXdqnxtwEhTJRRUKte8oRbJ5kMhaKtJyJ7Bi4",
       "category": "Beauty & Skincare",
       "status": "available"
     },
-    "Plumgoodness": {
+    "plumgoodness": {
       "sheet_id": "1Rbt44ycJsMStp_G2nssLL6q_MKt55uOUCsR-6JpWIBw",
       "category": "Beauty & Skincare",
       "status": "available"
     },
-    "Tira Beauty": {
+    "tira beauty": {
       "sheet_id": "1Ka9D-mhHk3Mo8A67e_coRusBtuLBViVo",
       "category": "Beauty & Skincare",
       "status": "available"
     },
-    "Caratlane": {
+    "caratlane": {
       "sheet_id": "1p6619GlYGbuoGc1YuHOJ91S2yg8qZR7TojF-ZKUU-TE",
       "category": "Jewelry & Accessories",
       "status": "available"
     },
-    "Palmonas": {
+    "palmonas": {
       "sheet_id": "1r8JgjbQmlF33OhiIJuPfV0SNbMANj1Wre4wXowbZAcc",
       "category": "Jewelry & Accessories",
       "status": "available"
     }
   },
   "categories": {
-    "Fashion & Lifestyle": {
+    "fashion & lifestyle": {
       "sheet_id": "1BP582N14eFzmPS3QEbV_Dtt_To0fbismW9fvspJRUbk",
       "status": "available"
     }

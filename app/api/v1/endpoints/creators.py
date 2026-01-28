@@ -2,6 +2,7 @@
 import logging
 import json
 import csv
+import re
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, HTTPException, Query, status
@@ -26,6 +27,22 @@ def load_sheet_mapping() -> Dict[str, Any]:
             detail="Failed to load sheet configuration"
         )
 
+
+def to_snake_case(text: str) -> str:
+    """Convert a string to snake_case.
+
+    Args:
+        text: String to convert (e.g., "Name", "Followers", "AvgLikes")
+
+    Returns:
+        snake_case version of the string
+    """
+    text = text.replace(' ', '_').replace('-', '_')
+
+    text = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
+    text = re.sub('([a-z0-9])([A-Z])', r'\1_\2', text)
+
+    return text.lower()
 
 def parse_number_string(value: str) -> int:
     """Parse strings like '2.5M' or '100K' into integers.
@@ -86,10 +103,10 @@ class CreatorInfluencersResponse(BaseModel):
                 },
                 "influencers": [
                     {
-                        "Name": "Jane Doe",
-                        "Followers": "50K",
-                        "Likes": "2.5M",
-                        "Platform": "Instagram"
+                        "name": "Jane Doe",
+                        "followers": "50K",
+                        "likes": "2.5M",
+                        "platform": "Instagram"
                     }
                 ]
             }
@@ -161,7 +178,12 @@ async def get_brand_influencers(
                 csv_content = await response.text()
 
         csv_reader = csv.DictReader(csv_content.splitlines())
-        influencers = list(csv_reader)
+        raw_influencers = list(csv_reader)
+
+        influencers = []
+        for row in raw_influencers:
+            snake_case_row = {to_snake_case(key): value for key, value in row.items()}
+            influencers.append(snake_case_row)
 
         if not influencers:
             logger.warning(f"No influencer data found for brand '{brand}'")
@@ -177,12 +199,8 @@ async def get_brand_influencers(
         total_creators = len(influencers)
         total_likes = 0
 
-        likes_column = None
-        first_row = influencers[0] if influencers else {}
-        for key in first_row.keys():
-            if key.lower() == "likes":
-                likes_column = key
-                break
+
+        likes_column = "likes" if "likes" in (influencers[0].keys() if influencers else {}) else None
 
         if likes_column:
             for influencer in influencers:
