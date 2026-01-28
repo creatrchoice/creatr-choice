@@ -13,10 +13,75 @@ setup_logging()
 
 app = FastAPI(
     title="AI Influencer Discovery API",
-    description="API for discovering and analyzing influencers using AI",
+    description="""
+    ## AI-Powered Influencer Discovery Platform
+    
+    A comprehensive API for discovering, analyzing, and managing influencers using advanced AI techniques.
+    
+    ### Features
+    
+    * 🔍 **Multiple Search Methods**
+        - Basic search with filters
+        - Natural language search (NLP)
+        - Hybrid search (keyword + vector + filters)
+        - Conversational search with refinement
+    
+    * 📊 **Rich Influencer Data**
+        - Profile information
+        - Engagement metrics
+        - Audience demographics
+        - Content analysis
+        - Collaboration pricing
+    
+    * 🎯 **Smart Filtering**
+        - Platform filtering (Instagram, Twitter, YouTube, TikTok, LinkedIn)
+        - Category/niche filtering
+        - Location-based search
+        - Follower count ranges
+        - Engagement rate filtering
+        - Creator type classification
+    
+    * 💬 **Conversational Interface**
+        - Chat-like search refinement
+        - Context-aware filtering
+        - Natural language queries
+    
+    ### Getting Started
+    
+    1. Use `/api/v1/influencers/categories` to discover available filters
+    2. Start with basic search: `/api/v1/influencers/?query=fitness&platform=instagram`
+    3. Try natural language search: `/api/v1/influencers/search/nlp`
+    4. Use conversational search for iterative refinement: `/api/v1/influencers/search/chat`
+    
+    ### Authentication
+    
+    Currently, the API does not require authentication. This may change in future versions.
+    
+    ### Rate Limits
+    
+    Rate limits may apply. Please contact support for enterprise access.
+    """,
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    contact={
+        "name": "API Support",
+        "email": "support@example.com",
+    },
+    license_info={
+        "name": "MIT",
+    },
+    servers=[
+        {
+            "url": "http://localhost:8000",
+            "description": "Development server"
+        },
+        {
+            "url": "https://api.example.com",
+            "description": "Production server"
+        }
+    ],
 )
 
 # CORS middleware

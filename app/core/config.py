@@ -44,6 +44,12 @@ class Settings(BaseSettings):
     AZURE_OPENAI_API_VERSION: str = "2024-02-15-preview"
     AZURE_OPENAI_CHAT_DEPLOYMENT: str = "gpt-4o"  # For NLP agent
     
+    # Azure Storage
+    AZURE_STORAGE_ACCOUNT_NAME: str = ""
+    AZURE_STORAGE_ACCOUNT_KEY: str = ""
+    AZURE_STORAGE_CONNECTION_STRING: str = ""
+    AZURE_STORAGE_CONTAINER_NAME: str = "uploads"
+    
     # OpenAI (fallback)
     OPENAI_API_KEY: str = ""
     
@@ -55,6 +61,7 @@ class Settings(BaseSettings):
     # External APIs (for future integrations)
     TWITTER_API_KEY: str = ""
     INSTAGRAM_API_KEY: str = ""
+    RAPIDAPI_KEY: str = ""
     
     # Search Configuration
     SEARCH_BATCH_SIZE: int = 100

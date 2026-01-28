@@ -6,9 +6,18 @@ from app.models.influencer import Influencer
 
 class NaturalLanguageSearchRequest(BaseModel):
     """Natural language search request."""
-    query: str = Field(..., description="Free-form text query describing the desired influencers")
-    limit: int = Field(10, ge=1, le=100, description="Number of results to return")
-    offset: int = Field(0, ge=0, description="Pagination offset")
+    query: str = Field(..., description="Free-form text query describing the desired influencers", example="Find me a fitness micro-influencer in Mumbai who is affordable")
+    limit: int = Field(10, ge=1, le=100, description="Number of results to return", example=10)
+    offset: int = Field(0, ge=0, description="Pagination offset", example=0)
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "Find me a fitness micro-influencer in Mumbai who is affordable",
+                "limit": 10,
+                "offset": 0
+            }
+        }
 
 
 class SearchFilters(BaseModel):
@@ -41,14 +50,35 @@ class HybridSearchRequest(BaseModel):
 
 class InfluencerWithScore(Influencer):
     """Influencer with relevance score."""
-    relevance_score: float = Field(..., description="Relevance score from search")
+    relevance_score: float = Field(..., description="Relevance score from search (0-1, higher is more relevant)", example=0.95)
 
 
 class InfluencerSearchResponse(BaseModel):
     """Enhanced search response with relevance scores."""
-    influencers: List[InfluencerWithScore]
-    total: int
-    limit: int
-    offset: int
-    has_more: bool
-    search_time_ms: Optional[float] = None
+    influencers: List[InfluencerWithScore] = Field(..., description="List of influencers with relevance scores")
+    total: int = Field(..., description="Total number of matching influencers", example=50)
+    limit: int = Field(..., description="Number of results per page", example=10)
+    offset: int = Field(..., description="Pagination offset", example=0)
+    has_more: bool = Field(..., description="Whether there are more results available", example=True)
+    search_time_ms: Optional[float] = Field(None, description="Search execution time in milliseconds", example=250.5)
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "influencers": [
+                    {
+                        "id": "123",
+                        "username": "johndoe",
+                        "display_name": "John Doe",
+                        "platform": "instagram",
+                        "followers": 50000,
+                        "relevance_score": 0.95
+                    }
+                ],
+                "total": 50,
+                "limit": 10,
+                "offset": 0,
+                "has_more": True,
+                "search_time_ms": 250.5
+            }
+        }
