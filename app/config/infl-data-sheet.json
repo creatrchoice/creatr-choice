@@ -1,0 +1,65 @@
+{
+  "brands": {
+    "Giva": {
+      "sheet_id": "14c-S-3PqylZVn30Y2ELz22SJ18vdTOikD3X4RORW4sc",
+      "category": "Jewelry & Accessories",
+      "status": "available"
+    },
+    "Nykaa": {
+      "sheet_id": "1nuME1mb8qsjyDpz13Nm26NXD-ZsTxyrL__Xd2ufWEJs",
+      "category": "Beauty & Skincare",
+      "status": "available"
+    },
+    "Savana": {
+      "sheet_id": "168ZW6nOzNUS62aCId_YyVg7firlX7tobcAjQw8eFaMc",
+      "category": "Fashion & Lifestyle",
+      "status": "available"
+    },
+    "NewMe": {
+      "sheet_id": "1SZZReH5tVgG9attNwemlKVETYeQhZ4cZk4BdeZs6j6w",
+      "category": "Fashion & Lifestyle",
+      "status": "available"
+    },
+    "Snitch": {
+      "sheet_id": "1QTMB-j1dw30z9Fw4Y9rSs9xPGP_YRGc-J7b3irAbuRY",
+      "category": "Fashion & Lifestyle",
+      "status": "available"
+    },
+    "Aqualogica": {
+      "sheet_id": "1kB3VHE1Rk4berWAU4dVDXutWmpoUglvZYgQcW7m3RWg",
+      "category": "Beauty & Skincare",
+      "status": "available"
+    },
+    "Dot & Key": {
+      "sheet_id": "1_hfIIpLXdqnxtwEhTJRRUKte8oRbJ5kMhaKtJyJ7Bi4",
+      "category": "Beauty & Skincare",
+      "status": "available"
+    },
+    "Plumgoodness": {
+      "sheet_id": "1Rbt44ycJsMStp_G2nssLL6q_MKt55uOUCsR-6JpWIBw",
+      "category": "Beauty & Skincare",
+      "status": "available"
+    },
+    "Tira Beauty": {
+      "sheet_id": "1Ka9D-mhHk3Mo8A67e_coRusBtuLBViVo",
+      "category": "Beauty & Skincare",
+      "status": "available"
+    },
+    "Caratlane": {
+      "sheet_id": "1p6619GlYGbuoGc1YuHOJ91S2yg8qZR7TojF-ZKUU-TE",
+      "category": "Jewelry & Accessories",
+      "status": "available"
+    },
+    "Palmonas": {
+      "sheet_id": "1r8JgjbQmlF33OhiIJuPfV0SNbMANj1Wre4wXowbZAcc",
+      "category": "Jewelry & Accessories",
+      "status": "available"
+    }
+  },
+  "categories": {
+    "Fashion & Lifestyle": {
+      "sheet_id": "1BP582N14eFzmPS3QEbV_Dtt_To0fbismW9fvspJRUbk",
+      "status": "available"
+    }
+  }
+}
