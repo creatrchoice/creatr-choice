@@ -30,7 +30,12 @@ class Settings(BaseSettings):
     AZURE_COSMOS_ENDPOINT: str = ""
     AZURE_COSMOS_KEY: str = ""
     AZURE_COSMOS_DATABASE: str = "influencer_db"
-    AZURE_COSMOS_CONTAINER: str = "influencers"
+    
+    # Cosmos DB Containers (3-collection architecture)
+    AZURE_COSMOS_CONTAINER: str = "influencers"  # Legacy, kept for backward compatibility
+    AZURE_COSMOS_INFLUENCERS_CONTAINER: str = "influencers"
+    AZURE_COSMOS_BRANDS_CONTAINER: str = "brands"
+    AZURE_COSMOS_BRAND_COLLABORATIONS_CONTAINER: str = "brand_collaborations"
     
     # Azure AI Search
     AZURE_SEARCH_ENDPOINT: str = ""
