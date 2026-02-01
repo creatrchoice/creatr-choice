@@ -18,7 +18,7 @@ service = BrandService()
 
 
 @router.get(
-    "/brands",
+    "/",
     response_model=BrandListResponse,
     summary="Get Brands",
     description="Get all brands or filter by id or name.",
@@ -58,7 +58,7 @@ async def get_brands(
 
 
 @router.post(
-    "/brands",
+    "/",
     response_model=BrandResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Brand",

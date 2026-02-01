@@ -18,7 +18,7 @@ service = FreeInfluencerService()
 
 
 @router.get(
-    "/free-influencers",
+    "/",
     response_model=InfluencerListResponse,
     summary="Get Free Influencers",
     description="Get all free influencers or filter by id, username, platform, categories, or location.",
@@ -36,7 +36,7 @@ async def get_influencers(
     location: Optional[str] = Query(None, description="Filter by location"),
 ):
     if id:
-        influencer = await service.get_influencer_by_id(id, platform)
+        influencer = await service.get_influencer_by_id(id)
         if not influencer:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Influencer not found")
         return {
@@ -69,7 +69,7 @@ async def get_influencers(
 
 
 @router.post(
-    "/free-influencers",
+    "/",
     response_model=InfluencerResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Free Influencer",

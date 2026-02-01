@@ -37,12 +37,13 @@ class BrandCollaborationRepository:
         Returns:
             Collaboration data or None
         """
-        container = await self._get_container()
-
         try:
+            container = await self._get_container()
             return await container.read_item(item=collab_id, partition_key=brand_id)
-        except Exception:
-            return None
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return None
+            raise
 
     async def get_by_brand(self, brand_id: str) -> List[Dict[str, Any]]:
         """
@@ -56,20 +57,25 @@ class BrandCollaborationRepository:
         Returns:
             List of collaborations
         """
-        container = await self._get_container()
+        try:
+            container = await self._get_container()
 
-        query = "SELECT * FROM c WHERE c.brand_id = @brand_id"
-        parameters = [{"name": "@brand_id", "value": brand_id}]
+            query = "SELECT * FROM c WHERE c.brand_id = @brand_id"
+            parameters = [{"name": "@brand_id", "value": brand_id}]
 
-        items = []
-        async for item in container.query_items(
-            query=query,
-            parameters=parameters,
-            partition_key=brand_id
-        ):
-            items.append(item)
+            items = []
+            async for item in container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=brand_id
+            ):
+                items.append(item)
 
-        return items
+            return items
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return []
+            raise
 
     async def get_by_influencer(self, influencer_id: str) -> List[Dict[str, Any]]:
         """
@@ -83,16 +89,21 @@ class BrandCollaborationRepository:
         Returns:
             List of collaborations
         """
-        container = await self._get_container()
+        try:
+            container = await self._get_container()
 
-        query = "SELECT * FROM c WHERE c.influencer_id = @influencer_id"
-        parameters = [{"name": "@influencer_id", "value": influencer_id}]
+            query = "SELECT * FROM c WHERE c.influencer_id = @influencer_id"
+            parameters = [{"name": "@influencer_id", "value": influencer_id}]
 
-        items = []
-        async for item in container.query_items(query=query, parameters=parameters):
-            items.append(item)
+            items = []
+            async for item in container.query_items(query=query, parameters=parameters):
+                items.append(item)
 
-        return items
+            return items
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return []
+            raise
 
     async def create(self, collaboration: Dict[str, Any]) -> Dict[str, Any]:
         """

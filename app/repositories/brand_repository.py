@@ -31,12 +31,13 @@ class BrandRepository:
         Returns:
             Brand data or None
         """
-        container = await self._get_container()
-
         try:
+            container = await self._get_container()
             return await container.read_item(item=brand_id, partition_key=brand_id)
-        except Exception:
-            return None
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return None
+            raise
 
     async def get_by_name(self, name: str) -> Optional[Dict[str, Any]]:
         """
@@ -48,16 +49,21 @@ class BrandRepository:
         Returns:
             Brand data or None
         """
-        container = await self._get_container()
+        try:
+            container = await self._get_container()
 
-        query = "SELECT * FROM c WHERE c.name = @name"
-        parameters = [{"name": "@name", "value": name}]
+            query = "SELECT * FROM c WHERE c.name = @name"
+            parameters = [{"name": "@name", "value": name}]
 
-        items = []
-        async for item in container.query_items(query=query, parameters=parameters):
-            items.append(item)
+            items = []
+            async for item in container.query_items(query=query, parameters=parameters):
+                items.append(item)
 
-        return items[0] if items else None
+            return items[0] if items else None
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return None
+            raise
 
     async def create(self, brand: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -115,16 +121,21 @@ class BrandRepository:
         Returns:
             List of brands
         """
-        container = await self._get_container()
+        try:
+            container = await self._get_container()
 
-        query = "SELECT * FROM c OFFSET @offset LIMIT @limit"
-        parameters = [
-            {"name": "@offset", "value": offset},
-            {"name": "@limit", "value": limit}
-        ]
+            query = "SELECT * FROM c OFFSET @offset LIMIT @limit"
+            parameters = [
+                {"name": "@offset", "value": offset},
+                {"name": "@limit", "value": limit}
+            ]
 
-        items = []
-        async for item in container.query_items(query=query, parameters=parameters):
-            items.append(item)
+            items = []
+            async for item in container.query_items(query=query, parameters=parameters):
+                items.append(item)
 
-        return items
+            return items
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return []
+            raise

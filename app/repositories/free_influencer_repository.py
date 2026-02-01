@@ -15,7 +15,7 @@ class FreeInfluencerRepository:
     def __init__(self):
         """Initialize repository."""
         self.cosmos_client = CosmosDBClient()
-        self.container_name = settings.AZURE_COSMOS_INFLUENCERS_CONTAINER
+        self.container_name = settings.AZURE_COSMOS_FREE_INFLUENCERS_CONTAINER
 
     async def _get_container(self):
         """Get the async container client."""
@@ -37,15 +37,22 @@ class FreeInfluencerRepository:
         if platform:
             try:
                 return await container.read_item(item=influencer_id, partition_key=platform)
-            except Exception:
-                return None
+            except Exception as e:
+                if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                    return None
+                raise
 
         query = "SELECT * FROM c WHERE c.id = @id"
         parameters = [{"name": "@id", "value": influencer_id}]
 
         items = []
-        async for item in container.query_items(query=query, parameters=parameters):
-            items.append(item)
+        try:
+            async for item in container.query_items(query=query, parameters=parameters):
+                items.append(item)
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return None
+            raise
 
         return items[0] if items else None
 
@@ -65,14 +72,18 @@ class FreeInfluencerRepository:
         query = "SELECT * FROM c WHERE c.username = @username"
         parameters = [{"name": "@username", "value": username}]
 
-        # Add platform filter if provided (same-partition query)
         if platform:
             query += " AND c.platform = @platform"
             parameters.append({"name": "@platform", "value": platform})
 
         items = []
-        async for item in container.query_items(query=query, parameters=parameters):
-            items.append(item)
+        try:
+            async for item in container.query_items(query=query, parameters=parameters):
+                items.append(item)
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return None
+            raise
 
         return items[0] if items else None
 
@@ -90,24 +101,29 @@ class FreeInfluencerRepository:
         Returns:
             List of influencers
         """
-        container = await self._get_container()
+        try:
+            container = await self._get_container()
 
-        query = "SELECT * FROM c WHERE c.platform = @platform OFFSET @offset LIMIT @limit"
-        parameters = [
-            {"name": "@platform", "value": platform},
-            {"name": "@offset", "value": offset},
-            {"name": "@limit", "value": limit}
-        ]
+            query = "SELECT * FROM c WHERE c.platform = @platform OFFSET @offset LIMIT @limit"
+            parameters = [
+                {"name": "@platform", "value": platform},
+                {"name": "@offset", "value": offset},
+                {"name": "@limit", "value": limit}
+            ]
 
-        items = []
-        async for item in container.query_items(
-            query=query,
-            parameters=parameters,
-            partition_key=platform
-        ):
-            items.append(item)
+            items = []
+            async for item in container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=platform
+            ):
+                items.append(item)
 
-        return items
+            return items
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return []
+            raise
 
     async def create(self, influencer: Dict[str, Any]) -> Dict[str, Any]:
         """

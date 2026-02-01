@@ -31,9 +31,10 @@ class Settings(BaseSettings):
     AZURE_COSMOS_KEY: str = ""
     AZURE_COSMOS_DATABASE: str = "influencer_db"
     
-    # Cosmos DB Containers (3-collection architecture)
+    # Cosmos DB Containers (4-collection architecture)
     AZURE_COSMOS_CONTAINER: str = "influencers"  # Legacy, kept for backward compatibility
     AZURE_COSMOS_INFLUENCERS_CONTAINER: str = "influencers"
+    AZURE_COSMOS_FREE_INFLUENCERS_CONTAINER: str = "free_influencers"
     AZURE_COSMOS_BRANDS_CONTAINER: str = "brands"
     AZURE_COSMOS_BRAND_COLLABORATIONS_CONTAINER: str = "brand_collaborations"
     
