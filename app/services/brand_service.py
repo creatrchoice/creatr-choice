@@ -27,3 +27,7 @@ class BrandService:
     async def get_brand_by_name(self, name: str) -> Optional[Dict[str, Any]]:
         """Get brand by name."""
         return await self.repository.get_by_name(name)
+
+    async def delete_brand(self, brand_id: str) -> bool:
+        """Delete a brand by ID."""
+        return await self.repository.delete(brand_id)

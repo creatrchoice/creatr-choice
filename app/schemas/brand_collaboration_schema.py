@@ -13,6 +13,7 @@ class CreateCollaborationRequest(BaseModel):
     comments: int = Field(0, ge=0, description="Total comments from collaboration posts")
     captured_at: str = Field(..., description="ISO 8601 datetime when metrics captured",
                              example="2026-02-01T10:00:00Z")
+    post_link: Optional[str] = Field(None, max_length=500, description="Instagram post URL")
 
     @field_validator("captured_at")
     @classmethod
@@ -35,7 +36,8 @@ class CreateCollaborationRequest(BaseModel):
             "influencer_id": "infl_456",
             "likes": 50000,
             "comments": 1200,
-            "captured_at": "2026-02-01T10:00:00Z"
+            "captured_at": "2026-02-01T10:00:00Z",
+            "post_link": "https://instagram.com/p/abc123"
         }
     })
 
@@ -44,6 +46,7 @@ class CollaborationMetrics(BaseModel):
     likes: int
     comments: int
     captured_at: str
+    post_link: Optional[str] = None
 
     model_config = ConfigDict(json_schema_extra={
         "example": {"likes": 50000, "comments": 1200, "captured_at": "2026-02-01T10:00:00Z"}
@@ -86,6 +89,7 @@ class CollaborationResponse(BaseModel):
     likes: int
     comments: int
     captured_at: str
+    post_link: Optional[str] = None
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -94,7 +98,8 @@ class CollaborationResponse(BaseModel):
             "influencer_id": "infl_456",
             "likes": 50000,
             "comments": 1200,
-            "captured_at": "2026-02-01T10:00:00Z"
+            "captured_at": "2026-02-01T10:00:00Z",
+            "post_link": "https://instagram.com/p/abc123"
         }
     })
 

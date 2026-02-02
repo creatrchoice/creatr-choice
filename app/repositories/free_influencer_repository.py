@@ -1,231 +1,111 @@
 """Free influencer repository for Cosmos DB."""
 from typing import List, Optional, Dict, Any
-
 from app.db.cosmos_db import CosmosDBClient
-from app.core.config import settings
 
 
 class FreeInfluencerRepository:
-    """Repository for free_influencer.Influencer model data access.
-
-    Container: influencers
-    Partition key: /platform
-    """
-
+    """Repository for free influencer data access."""
+    
     def __init__(self):
-        """Initialize repository."""
-        self.cosmos_client = CosmosDBClient()
-        self.container_name = settings.AZURE_COSMOS_FREE_INFLUENCERS_CONTAINER
+        self.client = CosmosDBClient()
 
     async def _get_container(self):
-        """Get the async container client."""
-        return await self.cosmos_client.get_async_container_client(self.container_name)
+        """Get async container client."""
+        return await self.client.get_async_container_client("free_influencers")
 
-    async def get_by_id(self, influencer_id: str, platform: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """
-        Get influencer by ID.
-
-        Args:
-            influencer_id: Influencer ID
-            platform: Platform (optional, improves query performance if provided)
-
-        Returns:
-            Influencer data or None
-        """
+    async def get_by_id(self, influencer_id: str, platform: str = "instagram"):
+        """Get influencer by ID and platform."""
         container = await self._get_container()
-
-        if platform:
-            try:
-                return await container.read_item(item=influencer_id, partition_key=platform)
-            except Exception as e:
-                if "Resource Not Found" in str(e) or "NotFound" in str(e):
-                    return None
-                raise
-
-        query = "SELECT * FROM c WHERE c.id = @id"
-        parameters = [{"name": "@id", "value": influencer_id}]
-
-        items = []
-        try:
-            async for item in container.query_items(query=query, parameters=parameters):
-                items.append(item)
-        except Exception as e:
-            if "Resource Not Found" in str(e) or "NotFound" in str(e):
-                return None
-            raise
-
+        # For free_influencers, partition key is '/id'
+        query = "SELECT * FROM c WHERE c.id = @id AND c.platform = @platform"
+        params = [
+            {"name": "@id", "value": influencer_id},
+            {"name": "@platform", "value": platform},
+        ]
+        items = [item async for item in container.query_items(
+            query=query,
+            parameters=params
+        )]
         return items[0] if items else None
 
-    async def get_by_username(self, username: str, platform: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """
-        Get influencer by username.
-
-        Args:
-            username: Username
-            platform: Platform (optional, improves query performance if provided)
-
-        Returns:
-            Influencer data or None
-        """
+    async def get_by_username(self, username: str, platform: str = "instagram"):
+        """Get influencer by username and platform."""
         container = await self._get_container()
-
-        query = "SELECT * FROM c WHERE c.username = @username"
-        parameters = [{"name": "@username", "value": username}]
-
-        if platform:
-            query += " AND c.platform = @platform"
-            parameters.append({"name": "@platform", "value": platform})
-
-        items = []
-        try:
-            async for item in container.query_items(query=query, parameters=parameters):
-                items.append(item)
-        except Exception as e:
-            if "Resource Not Found" in str(e) or "NotFound" in str(e):
-                return None
-            raise
-
+        query = "SELECT * FROM c WHERE c.username = @username AND c.platform = @platform"
+        params = [
+            {"name": "@username", "value": username},
+            {"name": "@platform", "value": platform},
+        ]
+        items = [item async for item in container.query_items(
+            query=query,
+            parameters=params
+        )]
         return items[0] if items else None
 
-    async def get_by_platform(self, platform: str, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
-        """
-        Get all influencers for a platform.
-
-        This is a same-partition query (fast).
-
-        Args:
-            platform: Platform name (e.g., "instagram", "youtube")
-            limit: Maximum number of results
-            offset: Number of results to skip
-
-        Returns:
-            List of influencers
-        """
-        try:
-            container = await self._get_container()
-
-            query = "SELECT * FROM c WHERE c.platform = @platform OFFSET @offset LIMIT @limit"
-            parameters = [
-                {"name": "@platform", "value": platform},
-                {"name": "@offset", "value": offset},
-                {"name": "@limit", "value": limit}
-            ]
-
-            items = []
-            async for item in container.query_items(
-                query=query,
-                parameters=parameters,
-                partition_key=platform
-            ):
-                items.append(item)
-
-            return items
-        except Exception as e:
-            if "Resource Not Found" in str(e) or "NotFound" in str(e):
-                return []
-            raise
-
-    async def create(self, influencer: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Create a new influencer.
-
-        Args:
-            influencer: Influencer data (must include 'id' and 'platform')
-
-        Returns:
-            Created influencer
-        """
+    async def get_by_platform(self, platform: str = "instagram", limit: int = 100):
+        """Get all influencers for a platform."""
         container = await self._get_container()
-        return await container.create_item(body=influencer)
+        query = f"SELECT TOP {limit} * FROM c WHERE c.platform = @platform"
+        params = [{"name": "@platform", "value": platform}]
+        return await container.query_items(query, params)
 
-    async def update(self, influencer_id: str, platform: str, influencer: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Update an existing influencer.
-
-        Args:
-            influencer_id: Influencer ID
-            platform: Platform (partition key)
-            influencer: Updated influencer data
-
-        Returns:
-            Updated influencer
-        """
-        container = await self._get_container()
-
-        # Ensure id and platform are set
-        influencer["id"] = influencer_id
-        influencer["platform"] = platform
-
-        return await container.replace_item(item=influencer_id, body=influencer)
-
-    async def delete(self, influencer_id: str, platform: str) -> bool:
-        """
-        Delete an influencer.
-
-        Args:
-            influencer_id: Influencer ID
-            platform: Platform (partition key)
-
-        Returns:
-            True if deleted
-        """
-        container = await self._get_container()
-
-        await container.delete_item(item=influencer_id, partition_key=platform)
-        return True
-
-    async def search_by_categories(
-        self,
-        categories: List[str],
-        platform: Optional[str] = None,
-        limit: int = 100
-    ) -> List[Dict[str, Any]]:
-        """
-        Search influencers by categories.
-
-        Args:
-            categories: List of categories to match
-            platform: Platform filter (optional)
-            limit: Maximum number of results
-
-        Returns:
-            List of matching influencers
-        """
-        container = await self._get_container()
-
+    async def search_by_categories(self, categories: List[str]):
+        """Search influencers by categories."""
         if not categories:
             return []
-
-        # Use first category for initial filter (Cosmos DB ARRAY_CONTAINS)
-        primary_category = categories[0]
-        other_categories = categories[1:]
-
-        # Build query with ARRAY_CONTAINS for server-side filtering
-        query = """
-            SELECT * FROM c
-            WHERE ARRAY_CONTAINS(c.categories, @category)
+        
+        container = await self._get_container()
+        category_conditions = []
+        params = []
+        for i, cat in enumerate(categories):
+            category_conditions.append(f"EXISTS(SELECT VALUE cat FROM cat IN c.categories WHERE cat = @cat_{i})")
+            params.append({"name": f"@cat_{i}", "value": cat})
+        
+        query = f"""
+        SELECT * FROM c 
+        WHERE ARRAY_LENGTH(c.categories) > 0 
+        AND ({' OR '.join(category_conditions)})
         """
-        parameters = [{"name": "@category", "value": primary_category}]
+        return await container.query_items(query, params)
 
-        if platform:
-            query += " AND c.platform = @platform"
-            parameters.append({"name": "@platform", "value": platform})
+    async def get_many_by_ids(self, influencer_ids: List[str], platform: str = "instagram"):
+        """Get multiple influencers by their IDs."""
+        if not influencer_ids:
+            return []
+            
+        container = await self._get_container()
+        id_conditions = []
+        params = [{"name": "@platform", "value": platform}]
+        
+        for i, influencer_id in enumerate(influencer_ids):
+            id_conditions.append(f"c.id = @id_{i}")
+            params.append({"name": f"@id_{i}", "value": influencer_id})
+        
+        query = f"""
+        SELECT * FROM c 
+        WHERE c.platform = @platform 
+        AND ({' OR '.join(id_conditions)})
+        """
+        
+        return await container.query_items(query, params)
 
-        items = []
-        async for item in container.query_items(
-            query=query,
-            parameters=parameters,
-            partition_key=platform if platform else None,
-            max_item_count=limit * 2  # Fetch more to filter for additional categories
-        ):
-            # Filter for additional categories in Python
-            if other_categories:
-                item_categories = item.get("categories", []) or []
-                if not any(cat in item_categories for cat in other_categories):
-                    continue
+    async def create(self, influencer_data: Dict[str, Any]):
+        """Create a new influencer."""
+        container = await self._get_container()
+        return await container.create_item(influencer_data)
 
-            items.append(item)
-            if len(items) >= limit:
-                break
+    async def update(self, influencer_id: str, platform: str, influencer_data: Dict[str, Any]):
+        """Update an existing influencer."""
+        container = await self._get_container()
+        return await container.upsert_item(influencer_id, platform, influencer_data)
 
-        return items
+    async def delete(self, influencer_id: str, platform: str = "instagram"):
+        """Delete an influencer by ID and platform."""
+        container = await self._get_container()
+        # For free_influencers, partition key is '/id', not '/platform'
+        return await container.delete_item(item=influencer_id, partition_key=influencer_id)
+
+    async def query(self, query: str, params: List[Dict[str, Any]]):
+        """Execute a custom query."""
+        container = await self._get_container()
+        return await container.query_items(query, params)

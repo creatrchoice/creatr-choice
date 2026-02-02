@@ -88,3 +88,25 @@ async def create_influencer(request: CreateInfluencerRequest):
     except Exception as e:
         logger.error(f"Error creating influencer: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.delete(
+    "/{influencer_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete Free Influencer",
+    description="Delete a free influencer by their ID.",
+    responses={
+        204: {"description": "Influencer deleted successfully"},
+        404: {"description": "Influencer not found"}
+    },
+    tags=["free-influencers"]
+)
+async def delete_influencer(influencer_id: str):
+    """
+    Delete a free influencer from the database.
+    """
+    try:
+        await service.delete_influencer(influencer_id)
+    except Exception as e:
+        logger.error(f"Error deleting influencer: {e}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Influencer with ID '{influencer_id}' not found or could not be deleted.") from e

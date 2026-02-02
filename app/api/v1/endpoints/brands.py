@@ -77,3 +77,26 @@ async def create_brand(request: CreateBrandRequest):
     except Exception as e:
         logger.error(f"Error creating brand: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.delete(
+    "/{brand_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete Brand",
+    description="Delete a brand by ID.",
+    responses={
+        200: {"description": "Brand deleted successfully"},
+        404: {"description": "Brand not found"}
+    },
+    tags=["brands"]
+)
+async def delete_brand(brand_id: str):
+    """Delete a brand by its ID."""
+    try:
+        await service.delete_brand(brand_id)
+        return {"message": f"Brand '{brand_id}' deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting brand: {e}")
+        if "Resource Not Found" in str(e) or "NotFound" in str(e):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

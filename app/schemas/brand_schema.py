@@ -26,11 +26,13 @@ class CreateBrandRequest(BaseModel):
 class BrandResponse(BaseModel):
     id: str
     name: str
-    logo: Optional[str]
-    description: Optional[str]
-    categories: Optional[List[str]]
+    logo: Optional[str] = None
+    description: Optional[str] = None
+    categories: Optional[List[str]] = None
 
-    model_config = ConfigDict(json_schema_extra={
+    model_config = ConfigDict(
+        extra="ignore",
+        json_schema_extra={
         "example": {
             "id": "brand_123",
             "name": "Nike",
@@ -45,7 +47,9 @@ class BrandListResponse(BaseModel):
     data: List[BrandResponse]
     count: int
 
-    model_config = ConfigDict(json_schema_extra={
+    model_config = ConfigDict(
+        extra="ignore",
+        json_schema_extra={
         "example": {
             "data": [{"id": "brand_1", "name": "Nike"}, {"id": "brand_2", "name": "Adidas"}],
             "count": 2

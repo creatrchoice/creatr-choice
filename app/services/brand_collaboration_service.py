@@ -63,6 +63,7 @@ class BrandCollaborationService:
                     "likes": collab.get("likes", 0),
                     "comments": collab.get("comments", 0),
                     "captured_at": collab.get("captured_at"),
+                    "post_link": collab.get("post_link"),
                 }
 
             result.append(influencer)

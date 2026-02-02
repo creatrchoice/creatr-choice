@@ -20,6 +20,7 @@ class FreeInfluencerService:
         if platform:
             return await self.repository.get_by_platform(
                 platform=platform,
+                limit=1000,
             )
         if categories:
             return await self.repository.search_by_categories(
@@ -27,6 +28,7 @@ class FreeInfluencerService:
             )
         return await self.repository.get_by_platform(
             platform="instagram",
+            limit=1000,
         )
 
     async def create_influencer(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -34,13 +36,17 @@ class FreeInfluencerService:
         return await self.repository.create(data)
 
     async def get_influencer_by_id(
-        self, influencer_id: str, platform: Optional[str] = None
+        self, influencer_id: str, platform: str = "instagram"
     ) -> Optional[Dict[str, Any]]:
         """Get influencer by ID."""
         return await self.repository.get_by_id(influencer_id, platform)
 
     async def get_influencer_by_username(
-        self, username: str, platform: Optional[str] = None
+        self, username: str, platform: str = "instagram"
     ) -> Optional[Dict[str, Any]]:
         """Get influencer by username."""
         return await self.repository.get_by_username(username, platform)
+        
+    async def delete_influencer(self, influencer_id: str, platform: str = "instagram"):
+        """Delete an influencer by their ID."""
+        return await self.repository.delete(influencer_id, platform)
