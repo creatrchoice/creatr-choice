@@ -53,7 +53,7 @@ class BrandCollaborationService:
                 continue
 
             platform = collab.get("platform")
-            influencer = await self.influencer_repo.get_by_id(influencer_id, platform if platform else None)
+            influencer = await self.influencer_repo.get_by_id(influencer_id, platform or "instagram")
 
             if not influencer:
                 continue
