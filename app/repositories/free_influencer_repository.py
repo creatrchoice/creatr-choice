@@ -47,7 +47,11 @@ class FreeInfluencerRepository:
         container = await self._get_container()
         query = f"SELECT TOP {limit} * FROM c WHERE c.platform = @platform"
         params = [{"name": "@platform", "value": platform}]
-        return await container.query_items(query, params)
+        items = [item async for item in container.query_items(
+            query=query,
+            parameters=params
+        )]
+        return items
 
     async def search_by_categories(self, categories: List[str]):
         """Search influencers by categories."""
@@ -66,7 +70,11 @@ class FreeInfluencerRepository:
         WHERE ARRAY_LENGTH(c.categories) > 0 
         AND ({' OR '.join(category_conditions)})
         """
-        return await container.query_items(query, params)
+        items = [item async for item in container.query_items(
+            query=query,
+            parameters=params
+        )]
+        return items
 
     async def get_many_by_ids(self, influencer_ids: List[str], platform: str = "instagram"):
         """Get multiple influencers by their IDs."""
@@ -87,7 +95,11 @@ class FreeInfluencerRepository:
         AND ({' OR '.join(id_conditions)})
         """
         
-        return await container.query_items(query, params)
+        items = [item async for item in container.query_items(
+            query=query,
+            parameters=params
+        )]
+        return items
 
     async def create(self, influencer_data: Dict[str, Any]):
         """Create a new influencer."""
@@ -108,4 +120,8 @@ class FreeInfluencerRepository:
     async def query(self, query: str, params: List[Dict[str, Any]]):
         """Execute a custom query."""
         container = await self._get_container()
-        return await container.query_items(query, params)
+        items = [item async for item in container.query_items(
+            query=query,
+            parameters=params
+        )]
+        return items

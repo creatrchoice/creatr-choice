@@ -141,7 +141,7 @@ class BrandCollaborationRepository:
 
         collaboration["id"] = collab_id
 
-        return await container.replace_item(item=collab_id, partition_key=brand_id, body=collaboration)
+        return await container.replace_item(item=collab_id, body=collaboration)
 
     async def delete(self, collab_id: str, brand_id: str) -> bool:
         """
@@ -156,5 +156,5 @@ class BrandCollaborationRepository:
         """
         container = await self._get_container()
 
-        await container.delete_item(item=collab_id, partition_key=brand_id)
+        await container.delete_item(item=collab_id)
         return True
