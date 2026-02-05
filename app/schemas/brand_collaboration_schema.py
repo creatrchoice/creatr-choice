@@ -105,10 +105,11 @@ class CollaborationResponse(BaseModel):
 
 
 class InfluencerListForBrandResponse(BaseModel):
-    data: List[InfluencerWithMetrics]
+    data: List[Any]
     count: int
-    brand_id: str
-    include_metrics: bool
+    brand_id: Optional[str] = None
+    influencer_id: Optional[str] = None
+    include_metrics: bool = False
 
     model_config = ConfigDict(json_schema_extra={
         "example": {

@@ -34,6 +34,25 @@ async def get_collaborations(
     influencer_id: Optional[str] = Query(None, description="Get all brands for this influencer"),
     include_metrics: bool = Query(False, description="Include collaboration metrics"),
 ):
+    if brand_id and influencer_id:
+        collaboration = await service.get_collaboration_by_brand_and_influencer(
+            brand_id=brand_id,
+            influencer_id=influencer_id,
+            include_metrics=include_metrics,
+        )
+        if not collaboration:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No collaboration found between brand_id={brand_id} and influencer_id={influencer_id}"
+            )
+        return {
+            "data": [collaboration],
+            "count": 1,
+            "brand_id": brand_id,
+            "influencer_id": influencer_id,
+            "include_metrics": include_metrics
+        }
+
     if brand_id:
         influencers = await service.get_influencers_for_brand(
             brand_id=brand_id,

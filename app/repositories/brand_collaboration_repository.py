@@ -105,6 +105,44 @@ class BrandCollaborationRepository:
                 return []
             raise
 
+    async def get_by_brand_and_influencer(
+        self, brand_id: str, influencer_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get collaboration by brand_id and influencer_id.
+
+        This is a same-partition query using brand_id as partition key.
+
+        Args:
+            brand_id: Brand ID (partition key)
+            influencer_id: Influencer ID
+
+        Returns:
+            Collaboration data or None
+        """
+        try:
+            container = await self._get_container()
+
+            query = "SELECT * FROM c WHERE c.brand_id = @brand_id AND c.influencer_id = @influencer_id"
+            parameters = [
+                {"name": "@brand_id", "value": brand_id},
+                {"name": "@influencer_id", "value": influencer_id}
+            ]
+
+            items = []
+            async for item in container.query_items(
+                query=query,
+                parameters=parameters,
+                partition_key=brand_id
+            ):
+                items.append(item)
+
+            return items[0] if items else None
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return None
+            raise
+
     async def create(self, collaboration: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a new collaboration.

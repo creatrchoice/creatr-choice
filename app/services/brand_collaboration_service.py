@@ -5,6 +5,13 @@ from app.repositories.brand_collaboration_repository import BrandCollaborationRe
 from app.repositories.free_influencer_repository import FreeInfluencerRepository
 
 
+COSMOS_SYSTEM_FIELDS = {"_rid", "_self", "_etag", "_attachments", "_ts"}
+
+def _clean_cosmos_response(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Remove Cosmos DB system fields from response."""
+    return {k: v for k, v in data.items() if k not in COSMOS_SYSTEM_FIELDS}
+
+
 class BrandCollaborationService:
     """Service layer for brand-influencer collaboration operations."""
 
@@ -75,3 +82,44 @@ class BrandCollaborationService:
     ) -> List[Dict[str, Any]]:
         """Get all collaborations for an influencer."""
         return await self.collaboration_repo.get_by_influencer(influencer_id)
+
+    async def get_collaboration_by_brand_and_influencer(
+        self,
+        brand_id: str,
+        influencer_id: str,
+        include_metrics: bool = False,
+    ) -> Optional[Dict[str, Any]]:
+        """Get specific collaboration between a brand and influencer.
+
+        Args:
+            brand_id: Brand ID
+            influencer_id: Influencer ID
+            include_metrics: If True, merge collaboration metrics into influencer object
+
+        Returns:
+            Collaboration data with influencer details, or None if not found
+        """
+        collaboration = await self.collaboration_repo.get_by_brand_and_influencer(
+            brand_id, influencer_id
+        )
+
+        if not collaboration:
+            return None
+
+        if include_metrics:
+            influencer_id_val = collaboration.get("influencer_id") or ""
+            platform = collaboration.get("platform") or "instagram"
+            influencer = await self.influencer_repo.get_by_id(
+                influencer_id_val, platform
+            )
+
+            if influencer:
+                influencer["collaboration_metrics"] = {
+                    "likes": collaboration.get("likes", 0),
+                    "comments": collaboration.get("comments", 0),
+                    "captured_at": collaboration.get("captured_at"),
+                    "post_link": collaboration.get("post_link"),
+                }
+                return _clean_cosmos_response(influencer)
+
+        return _clean_cosmos_response(collaboration)
