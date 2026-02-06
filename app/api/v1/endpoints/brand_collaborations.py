@@ -1,5 +1,6 @@
 """Brand collaboration endpoints."""
 import logging
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query, Body, status
 from typing import Optional
 
@@ -34,8 +35,9 @@ async def get_collaborations(
     influencer_id: Optional[str] = Query(None, description="Get all brands for this influencer"),
     include_metrics: bool = Query(False, description="Include collaboration metrics"),
 ):
+    cached_time = None
     if brand_id and influencer_id:
-        collaboration = await service.get_collaboration_by_brand_and_influencer(
+        collaboration, was_cached = await service.get_collaboration_by_brand_and_influencer(
             brand_id=brand_id,
             influencer_id=influencer_id,
             include_metrics=include_metrics,
@@ -50,11 +52,12 @@ async def get_collaborations(
             "count": 1,
             "brand_id": brand_id,
             "influencer_id": influencer_id,
-            "include_metrics": include_metrics
+            "include_metrics": include_metrics,
+            "cachedTime": datetime.utcnow().isoformat() if was_cached else None
         }
 
     if brand_id:
-        influencers = await service.get_influencers_for_brand(
+        influencers, was_cached = await service.get_influencers_for_brand(
             brand_id=brand_id,
             include_metrics=include_metrics,
         )
@@ -62,7 +65,8 @@ async def get_collaborations(
             "data": influencers,
             "count": len(influencers),
             "brand_id": brand_id,
-            "include_metrics": include_metrics
+            "include_metrics": include_metrics,
+            "cachedTime": datetime.utcnow().isoformat() if was_cached else None
         }
 
     if influencer_id:
@@ -70,7 +74,8 @@ async def get_collaborations(
         return {
             "data": collaborations,
             "count": len(collaborations),
-            "influencer_id": influencer_id
+            "influencer_id": influencer_id,
+            "cachedTime": None
         }
 
     raise HTTPException(
