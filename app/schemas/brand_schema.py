@@ -4,8 +4,8 @@ from typing import Optional, List
 
 
 class CreateBrandRequest(BaseModel):
-    id: str = Field(..., min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_-]+$",
-                    description="Unique brand identifier", example="brand_123")
+    id: str = Field(..., min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_.\-]+$",
+                    description="Unique brand identifier", example="brand.123")
     name: str = Field(..., min_length=1, max_length=200,
                       description="Brand name", example="Nike")
     logo: Optional[str] = Field(None, max_length=500, description="Logo URL")

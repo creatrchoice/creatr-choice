@@ -1,7 +1,7 @@
 """Influencer discovery endpoints."""
 import logging
 from fastapi import APIRouter, HTTPException, Query, Body, Path, status
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field
 
 from app.models.influencer import (
@@ -666,9 +666,18 @@ class ScrapeBrandResponse(BaseModel):
         }
 
 
+class ScrapeJsonResponse(BaseModel):
+    """Response model for JSON output from scrape."""
+    file_path: str = Field(..., description="Path to the generated JSON file")
+    brand_username: str
+    captured_at: str
+    influencer_count: int
+    last_cursor: Optional[str] = Field(None, description="Last end_cursor from this scrape. Use this as max_id in next request to resume.")
+
+
 @router.post(
     "/scrape",
-    response_model=ScrapeBrandResponse,
+    response_model=Union[ScrapeBrandResponse, ScrapeJsonResponse],
     summary="Scrape Brand and Influencer Data",
     description="Scrape Instagram posts from a brand account and extract influencer data from collaborations.",
     responses={
@@ -703,6 +712,7 @@ class ScrapeBrandResponse(BaseModel):
 )
 async def scrape_brand(
     request: ScrapeBrandRequest = Body(..., description="Brand scraping request"),
+    json: str = Query("false", description="Output as JSON file instead of Excel (true/false)"),
 ):
     """
     Scrape brand posts and extract influencer data from Instagram.
@@ -761,6 +771,7 @@ async def scrape_brand(
         extract_brand_data,
         extract_influencer_data,
         generate_excel_file,
+        generate_json_file,
     )
     
     try:
@@ -786,20 +797,41 @@ async def scrape_brand(
             posts, request.username, request.exclude_usernames or []
         )
         
-        # Generate Excel file
-        file_path = await generate_excel_file(brand_data, influencer_data)
+        from datetime import datetime, timezone
+        captured_at = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         
-        return ScrapeBrandResponse(
-            file_path=file_path,
-            brand_data=BrandDataResponse(
-                username=brand_data.username,
-                full_name=brand_data.full_name,
-                user_id=brand_data.user_id,
-                is_verified=brand_data.is_verified,
-            ),
-            influencer_count=len(influencer_data),
-            last_cursor=last_cursor,
-        )
+        json_output_bool = json.lower() in ("true", "1", "yes")
+        
+        if json_output_bool:
+            file_path = await generate_json_file(
+                brand_data, 
+                influencer_data, 
+                captured_at,
+                output_folder="app/config"
+            )
+            
+            return ScrapeJsonResponse(
+                file_path=file_path,
+                brand_username=brand_data.username,
+                captured_at=captured_at,
+                influencer_count=len(influencer_data),
+                last_cursor=last_cursor,
+            )
+        else:
+            # Generate Excel file
+            file_path = await generate_excel_file(brand_data, influencer_data)
+            
+            return ScrapeBrandResponse(
+                file_path=file_path,
+                brand_data=BrandDataResponse(
+                    username=brand_data.username,
+                    full_name=brand_data.full_name,
+                    user_id=brand_data.user_id,
+                    is_verified=brand_data.is_verified,
+                ),
+                influencer_count=len(influencer_data),
+                last_cursor=last_cursor,
+            )
     except HTTPException:
         raise
     except Exception as error:
