@@ -125,3 +125,10 @@ class FreeInfluencerRepository:
             parameters=params
         )]
         return items
+
+    async def count(self) -> int:
+        """Get total count of free influencers."""
+        container = await self._get_container()
+        query = "SELECT VALUE COUNT(1) FROM c"
+        items = [item async for item in container.query_items(query=query)]
+        return items[0] if items else 0

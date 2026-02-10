@@ -763,7 +763,7 @@ async def generate_json_file(
     brand_data: BrandData,
     influencer_data: List[InfluencerData],
     captured_at: str,
-    output_folder: str = "app/config",
+    output_folder: str = "raw-results",
 ) -> str:
     """
     Generate JSON file with brand and influencer data.

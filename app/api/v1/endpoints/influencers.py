@@ -618,8 +618,8 @@ async def search_chat(request: ChatSearchRequest):
 class ScrapeBrandRequest(BaseModel):
     """Request model for scraping brand influencers."""
     username: str = Field(..., description="Brand Instagram username", example="mamaearth")
-    max_posts: int = Field(..., ge=1, le=10000, description="Maximum number of posts to scrape", example=100)
-    max_api_calls: int = Field(20, ge=1, le=1000, description="Maximum API calls per brand", example=20)
+    max_posts: int = Field(..., ge=1, le=20000, description="Maximum number of posts to scrape", example=100)
+    max_api_calls: int = Field(20, ge=1, le=2000, description="Maximum API calls per brand", example=20)
     max_id: Optional[str] = Field(None, description="Last cursor/end_cursor from previous scrape to resume from a specific point")
     exclude_usernames: List[str] = Field(default_factory=list, description="List of usernames to exclude from the final influencer list")
     
@@ -807,7 +807,7 @@ async def scrape_brand(
                 brand_data, 
                 influencer_data, 
                 captured_at,
-                output_folder="app/config"
+                output_folder="raw-results"
             )
             
             return ScrapeJsonResponse(
