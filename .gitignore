@@ -60,3 +60,4 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 run-results/
+raw-results/
