@@ -32,3 +32,6 @@ azure-storage-blob>=12.19.0
 
 # Production server
 gunicorn>=21.2.0
+
+# Redis
+redis>=5.0.0

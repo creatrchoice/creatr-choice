@@ -64,6 +64,14 @@ class Settings(BaseSettings):
     LOCAL_MONGODB_DATABASE: str = ""
     LOCAL_MONGODB_COLLECTION: str = ""
     
+    # Redis
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+    REDIS_USERNAME: str = ""
+    REDIS_PASSWORD: str = ""
+    BRAND_COLLAB_CACHE_TTL: int = 604800
+    
     # External APIs (for future integrations)
     TWITTER_API_KEY: str = ""
     INSTAGRAM_API_KEY: str = ""
