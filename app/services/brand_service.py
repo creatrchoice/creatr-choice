@@ -31,3 +31,8 @@ class BrandService:
     async def delete_brand(self, brand_id: str) -> bool:
         """Delete a brand by ID."""
         return await self.repository.delete(brand_id)
+
+    async def get_stats(self) -> Dict[str, int]:
+        """Get statistics for brands."""
+        total = await self.repository.count()
+        return {"total_brands": total}

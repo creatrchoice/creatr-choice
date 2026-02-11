@@ -48,7 +48,7 @@ def scrape_brand(brand: str, max_posts: int, max_api_calls: int) -> tuple[Option
                 "max_api_calls": max_api_calls,
                 "exclude_usernames": []
             },
-            timeout=3600
+            timeout=7200
         )
 
         if response.status_code != 200:
@@ -363,8 +363,8 @@ def create_collaborations(influencers: list, brand_id: str) -> dict:
 def main():
     parser = argparse.ArgumentParser(description="Brand pipeline: scrape, import influencers, create collaborations")
     parser.add_argument("--brand", required=True, help="Brand Instagram username (without @)")
-    parser.add_argument("--max-posts", type=int, default=20000, help="Max posts to scrape (default: 20000)")
-    parser.add_argument("--max-api-calls", type=int, default=2000, help="Max API calls for scraping (default: 2000)")
+    parser.add_argument("--max-posts", type=int, default=10000, help="Max posts to scrape (default: 10000)")
+    parser.add_argument("--max-api-calls", type=int, default=1000, help="Max API calls for scraping (default: 1000)")
     parser.add_argument("--max-db-api", type=int, default=0, help="Max DB API calls for import (0=unlimited)")
     args = parser.parse_args()
 

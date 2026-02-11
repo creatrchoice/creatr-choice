@@ -772,8 +772,9 @@ async def scrape_brand(
         extract_influencer_data,
         generate_excel_file,
         generate_json_file,
+        generate_posts_json_file,
     )
-    
+
     try:
         # Fetch posts
         posts, last_cursor = await fetch_brand_posts(
@@ -782,13 +783,24 @@ async def scrape_brand(
             request.max_api_calls,
             request.max_id,
         )
-        
+
         if not posts:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No posts found for the given username",
             )
-        
+
+        from datetime import datetime, timezone
+        captured_at = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+        # Save raw posts
+        try:
+            posts_file_path = await generate_posts_json_file(posts, request.username, captured_at)
+            logger.info(f"[SCRAPE] Raw posts saved to: {posts_file_path}")
+        except Exception as e:
+            logger.error(f"[SCRAPE] Failed to save raw posts: {e}", exc_info=True)
+            posts_file_path = None
+
         # Extract brand data
         brand_data = extract_brand_data(posts, request.username)
         
@@ -796,10 +808,7 @@ async def scrape_brand(
         influencer_data = extract_influencer_data(
             posts, request.username, request.exclude_usernames or []
         )
-        
-        from datetime import datetime, timezone
-        captured_at = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
-        
+
         json_output_bool = json.lower() in ("true", "1", "yes")
         
         if json_output_bool:

@@ -759,6 +759,44 @@ async def generate_excel_file(
     return filepath
 
 
+async def generate_posts_json_file(
+    posts: List[Dict[str, Any]],
+    brand_username: str,
+    captured_at: str,
+    output_folder: str = "raw-results",
+) -> str:
+    """
+    Generate JSON file with raw brand posts.
+
+    Args:
+        posts: List of Instagram post data
+        brand_username: Brand username
+        captured_at: ISO timestamp when data was captured
+        output_folder: Output folder path
+
+    Returns:
+        File path of generated JSON file
+    """
+    import json
+
+    os.makedirs(f"{output_folder}/posts", exist_ok=True)
+
+    filepath = f"{output_folder}/posts/{brand_username}.json"
+
+    output = {
+        "brand_username": brand_username,
+        "captured_at": captured_at,
+        "total_posts": len(posts),
+        "posts": posts,
+    }
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+
+    logger.info(f"[generate_posts_json_file] Saved posts: {filepath} ({len(posts)} posts)")
+    return filepath
+
+
 async def generate_json_file(
     brand_data: BrandData,
     influencer_data: List[InfluencerData],
