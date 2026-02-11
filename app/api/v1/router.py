@@ -1,7 +1,7 @@
 """Main API router."""
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import influencers, storage, creators, free_influencers, brands, brand_collaborations
+from app.api.v1.endpoints import influencers, storage, creators, free_influencers, brands, brand_collaborations, stats
 
 api_router = APIRouter()
 
@@ -39,4 +39,10 @@ api_router.include_router(
     brand_collaborations.router,
     prefix="",
     tags=["brand-collaborations"],
+)
+
+api_router.include_router(
+    stats.router,
+    prefix="",
+    tags=["platform"],
 )

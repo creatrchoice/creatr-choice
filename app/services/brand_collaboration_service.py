@@ -183,5 +183,9 @@ class BrandCollaborationService:
                 }
                 result = _clean_cosmos_response(influencer)
 
-        await self._set_cache(cache_key, result)
-        return result, False
+        return _clean_cosmos_response(collaboration)
+
+    async def get_stats(self) -> Dict[str, int]:
+        """Get statistics for brand collaborations."""
+        total = await self.collaboration_repo.count()
+        return {"total_brand_collaborations": total}

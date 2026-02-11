@@ -90,6 +90,20 @@ async def create_influencer(request: CreateInfluencerRequest):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
+@router.get(
+    "/stats",
+    summary="Get Free Influencer Stats",
+    description="Get total count of free influencers.",
+    responses={
+        200: {"description": "Statistics returned successfully"}
+    },
+    tags=["free-influencers"]
+)
+async def get_stats():
+    """Get statistics for free influencers."""
+    return await service.get_stats()
+
+
 @router.delete(
     "/{influencer_id}",
     status_code=status.HTTP_204_NO_CONTENT,

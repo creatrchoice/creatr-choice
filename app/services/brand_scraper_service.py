@@ -757,3 +757,92 @@ async def generate_excel_file(
     workbook.save(filepath)
     
     return filepath
+
+
+async def generate_posts_json_file(
+    posts: List[Dict[str, Any]],
+    brand_username: str,
+    captured_at: str,
+    output_folder: str = "raw-results",
+) -> str:
+    """
+    Generate JSON file with raw brand posts.
+
+    Args:
+        posts: List of Instagram post data
+        brand_username: Brand username
+        captured_at: ISO timestamp when data was captured
+        output_folder: Output folder path
+
+    Returns:
+        File path of generated JSON file
+    """
+    import json
+
+    os.makedirs(f"{output_folder}/posts", exist_ok=True)
+
+    filepath = f"{output_folder}/posts/{brand_username}.json"
+
+    output = {
+        "brand_username": brand_username,
+        "captured_at": captured_at,
+        "total_posts": len(posts),
+        "posts": posts,
+    }
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
+
+    logger.info(f"[generate_posts_json_file] Saved posts: {filepath} ({len(posts)} posts)")
+    return filepath
+
+
+async def generate_json_file(
+    brand_data: BrandData,
+    influencer_data: List[InfluencerData],
+    captured_at: str,
+    output_folder: str = "raw-results",
+) -> str:
+    """
+    Generate JSON file with brand and influencer data.
+    
+    Args:
+        brand_data: Brand data
+        influencer_data: List of influencer data
+        captured_at: ISO timestamp when data was captured
+        output_folder: Output folder path
+        
+    Returns:
+        File path of generated JSON file
+    """
+    import json
+    
+    os.makedirs(output_folder, exist_ok=True)
+    
+    json_output = {
+        "brand_username": brand_data.username,
+        "captured_at": captured_at,
+        "influencers": [
+            {
+                "username": influencer.username,
+                "full_name": influencer.full_name or "",
+                "profile_pic_url": influencer.profile_pic_url or "",
+                "brand_id": brand_data.username,
+                "likes": influencer.likes or 0,
+                "comments": influencer.comments or 0,
+                "post_link": influencer.post_link or "",
+                "captured_at": captured_at,
+            }
+            for influencer in influencer_data
+        ]
+    }
+    
+    filename = f"{brand_data.username}-infl.json"
+    filepath = os.path.join(output_folder, filename)
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(json_output, f, indent=2, ensure_ascii=False)
+    
+    logger.info(f"[generate_json_file] Saved JSON file: {filepath}")
+    
+    return filepath

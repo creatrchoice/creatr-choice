@@ -50,3 +50,8 @@ class FreeInfluencerService:
     async def delete_influencer(self, influencer_id: str, platform: str = "instagram"):
         """Delete an influencer by their ID."""
         return await self.repository.delete(influencer_id, platform)
+
+    async def get_stats(self) -> Dict[str, int]:
+        """Get statistics for free influencers."""
+        total = await self.repository.count()
+        return {"total_free_influencers": total}

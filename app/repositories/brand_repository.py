@@ -139,3 +139,10 @@ class BrandRepository:
             if "Resource Not Found" in str(e) or "NotFound" in str(e):
                 return []
             raise
+
+    async def count(self) -> int:
+        """Get total count of brands."""
+        container = await self._get_container()
+        query = "SELECT VALUE COUNT(1) FROM c"
+        items = [item async for item in container.query_items(query=query)]
+        return items[0] if items else 0

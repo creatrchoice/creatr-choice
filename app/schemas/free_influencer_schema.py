@@ -1,5 +1,5 @@
 """Free influencer schemas - request (validated) and response (documented only)."""
-from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List, Dict
 from datetime import datetime
 
@@ -45,11 +45,7 @@ class CreateInfluencerRequest(BaseModel):
             raise ValueError("last_fetched_at must be valid ISO 8601 format")
         return v
 
-    @model_validator(mode="after")
-    def validate_followers_ratio(self):
-        if self.followers > 0 and self.following > self.followers * 10:
-            raise ValueError("following count unusually high compared to followers")
-        return self
+
 
     model_config = ConfigDict(json_schema_extra={
         "example": {

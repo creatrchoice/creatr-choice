@@ -196,3 +196,10 @@ class BrandCollaborationRepository:
 
         await container.delete_item(item=collab_id)
         return True
+
+    async def count(self) -> int:
+        """Get total count of brand collaborations."""
+        container = await self._get_container()
+        query = "SELECT VALUE COUNT(1) FROM c"
+        items = [item async for item in container.query_items(query=query)]
+        return items[0] if items else 0
