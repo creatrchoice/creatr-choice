@@ -65,12 +65,14 @@ class BrandResponse(BaseModel):
 class BrandListResponse(BaseModel):
     data: List[BrandResponse]
     count: int
+    offset: Optional[str] = Field(None, description="Offset for next page (null if no more data)")
 
     model_config = ConfigDict(
         extra="ignore",
         json_schema_extra={
         "example": {
             "data": [{"id": "brand_1", "name": "Nike"}, {"id": "brand_2", "name": "Adidas"}],
-            "count": 2
+            "count": 2,
+            "offset": None
         }
     })

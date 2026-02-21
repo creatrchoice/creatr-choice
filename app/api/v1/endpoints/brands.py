@@ -22,7 +22,7 @@ service = BrandService()
     "/",
     response_model=BrandListResponse,
     summary="Get Brands",
-    description="Get all brands or filter by id or name.",
+    description="Get all brands with pagination using size and offset parameters.",
     responses={
         200: {"description": "List of brands"},
         404: {"description": "Brand not found"}
@@ -32,6 +32,8 @@ service = BrandService()
 async def get_brands(
     id: Optional[str] = Query(None, description="Filter by brand ID"),
     name: Optional[str] = Query(None, description="Filter by brand name"),
+    size: int = Query(20, ge=1, le=1000, description="Number of brands to return"),
+    offset: int = Query(0, ge=0, description="Number of brands to skip"),
 ):
     if id:
         brand = await service.get_brand_by_id(id)
@@ -39,7 +41,8 @@ async def get_brands(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
         return {
             "data": [brand],
-            "count": 1
+            "count": 1,
+            "offset": None
         }
 
     if name:
@@ -48,13 +51,15 @@ async def get_brands(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
         return {
             "data": [brand],
-            "count": 1
+            "count": 1,
+            "offset": None
         }
 
-    brands = await service.list_brands()
+    brands, next_offset = await service.list_brands(limit=size, cursor=str(offset))
     return {
         "data": brands,
-        "count": len(brands)
+        "count": len(brands),
+        "offset": next_offset
     }
 
 

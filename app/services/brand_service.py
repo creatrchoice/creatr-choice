@@ -1,5 +1,5 @@
 """Brand service for business logic."""
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 
 from app.repositories.brand_repository import BrandRepository
 
@@ -12,9 +12,11 @@ class BrandService:
 
     async def list_brands(
         self,
-    ) -> List[Dict[str, Any]]:
-        """List all brands with pagination."""
-        return await self.repository.list_all()
+        limit: int = 20,
+        cursor: Optional[str] = None
+    ) -> tuple[List[Dict[str, Any]], Optional[str]]:
+        """List all brands with cursor-based pagination."""
+        return await self.repository.list_all(limit=limit, cursor=cursor)
 
     async def create_brand(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new brand."""
