@@ -32,6 +32,18 @@ class BrandService:
         """Delete a brand by ID."""
         return await self.repository.delete(brand_id)
 
+    async def update_brand(self, brand_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update an existing brand (partial update)."""
+        existing = await self.repository.get_by_id(brand_id)
+        if not existing:
+            raise ValueError(f"Brand '{brand_id}' not found")
+
+        for key, value in data.items():
+            if value is not None:
+                existing[key] = value
+
+        return await self.repository.update(brand_id, existing)
+
     async def get_stats(self) -> Dict[str, int]:
         """Get statistics for brands."""
         total = await self.repository.count()

@@ -23,6 +23,22 @@ class CreateBrandRequest(BaseModel):
     })
 
 
+class UpdateBrandRequest(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200,
+                                description="Brand name", example="Nike")
+    logo: Optional[str] = Field(None, max_length=500, description="Logo URL")
+    description: Optional[str] = Field(None, max_length=1000, description="Brand description")
+    categories: Optional[List[str]] = Field(None, max_length=20, description="Brand categories")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "name": "Nike Updated",
+            "logo": "https://example.com/new-logo.png",
+            "description": "Updated sportswear brand"
+        }
+    })
+
+
 class BrandResponse(BaseModel):
     id: str
     name: str

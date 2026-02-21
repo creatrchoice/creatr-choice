@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.schemas.brand_schema import (
     CreateBrandRequest,
+    UpdateBrandRequest,
     BrandResponse,
     BrandListResponse,
 )
@@ -76,6 +77,34 @@ async def create_brand(request: CreateBrandRequest):
         return brand
     except Exception as e:
         logger.error(f"Error creating brand: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch(
+    "/{brand_id}",
+    response_model=BrandResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update Brand",
+    description="Update an existing brand (partial update).",
+    responses={
+        200: {"description": "Brand updated successfully"},
+        404: {"description": "Brand not found"}
+    },
+    tags=["brands"]
+)
+async def update_brand(brand_id: str, request: UpdateBrandRequest):
+    """Update an existing brand by its ID (partial update)."""
+    data = request.model_dump(exclude_unset=True)
+    if not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+
+    try:
+        brand = await service.update_brand(brand_id, data)
+        return brand
+    except Exception as e:
+        logger.error(f"Error updating brand: {e}")
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
