@@ -11,6 +11,7 @@ class CreateBrandRequest(BaseModel):
     logo: Optional[str] = Field(None, max_length=500, description="Logo URL")
     description: Optional[str] = Field(None, max_length=1000, description="Brand description")
     categories: Optional[List[str]] = Field(None, max_length=20, description="Brand categories")
+    instaHandle: Optional[str] = Field(None, max_length=100, description="Instagram handle")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -29,6 +30,7 @@ class UpdateBrandRequest(BaseModel):
     logo: Optional[str] = Field(None, max_length=500, description="Logo URL")
     description: Optional[str] = Field(None, max_length=1000, description="Brand description")
     categories: Optional[List[str]] = Field(None, max_length=20, description="Brand categories")
+    instaHandle: Optional[str] = Field(None, max_length=100, description="Instagram handle")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -45,6 +47,7 @@ class BrandResponse(BaseModel):
     logo: Optional[str] = None
     description: Optional[str] = None
     categories: Optional[List[str]] = None
+    instaHandle: Optional[str] = None
 
     model_config = ConfigDict(
         extra="ignore",

@@ -13,3 +13,4 @@ class Brand(BaseModel):
     logo: Optional[str] = None
     description: Optional[str] = None
     categories: Optional[List[str]] = None
+    instaHandle: Optional[str] = None
