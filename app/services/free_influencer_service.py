@@ -51,6 +51,20 @@ class FreeInfluencerService:
         """Delete an influencer by their ID."""
         return await self.repository.delete(influencer_id, platform)
 
+    async def update_influencer(
+        self, influencer_id: str, data: Dict[str, Any], platform: str = "instagram"
+    ) -> Dict[str, Any]:
+        """Update an existing influencer (partial update)."""
+        existing = await self.repository.get_by_id(influencer_id, platform)
+        if not existing:
+            raise ValueError(f"Influencer '{influencer_id}' not found")
+
+        for key, value in data.items():
+            if value is not None:
+                existing[key] = value
+
+        return await self.repository.update(influencer_id, platform, existing)
+
     async def get_stats(self) -> Dict[str, int]:
         """Get statistics for free influencers."""
         total = await self.repository.count()

@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.schemas.free_influencer_schema import (
     CreateInfluencerRequest,
+    UpdateInfluencerRequest,
     InfluencerResponse,
     InfluencerListResponse,
 )
@@ -87,6 +88,38 @@ async def create_influencer(request: CreateInfluencerRequest):
         return influencer
     except Exception as e:
         logger.error(f"Error creating influencer: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch(
+    "/{influencer_id}",
+    response_model=InfluencerResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update Free Influencer",
+    description="Update an existing free influencer (partial update).",
+    responses={
+        200: {"description": "Influencer updated successfully"},
+        404: {"description": "Influencer not found"}
+    },
+    tags=["free-influencers"]
+)
+async def update_influencer(
+    influencer_id: str,
+    request: UpdateInfluencerRequest,
+    platform: Optional[str] = Query("instagram", description="Platform (default: instagram)")
+):
+    """Update an existing free influencer by their ID (partial update)."""
+    data = request.model_dump(exclude_unset=True)
+    if not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+
+    try:
+        influencer = await service.update_influencer(influencer_id, data, platform)
+        return influencer
+    except Exception as e:
+        logger.error(f"Error updating influencer: {e}")
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Influencer not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
