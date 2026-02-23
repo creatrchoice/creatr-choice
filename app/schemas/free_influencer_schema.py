@@ -158,6 +158,7 @@ class InfluencerListResponse(BaseModel):
     """Response for list of influencers."""
     data: List[InfluencerResponse]
     count: int = Field(..., description="Number of results")
+    offset: Optional[str] = Field(None, description="Offset for next page (null if no more data)")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -165,5 +166,6 @@ class InfluencerListResponse(BaseModel):
                 {"id": "infl_1", "username": "johndoe", "followers": 10000, "platform": "instagram"}
             ],
             "count": 1,
+            "offset": None
         }
     })
