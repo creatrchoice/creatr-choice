@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.schemas.free_influencer_schema import (
     CreateInfluencerRequest,
+    UpdateInfluencerRequest,
     InfluencerResponse,
     InfluencerListResponse,
 )
@@ -21,7 +22,7 @@ service = FreeInfluencerService()
     "/",
     response_model=InfluencerListResponse,
     summary="Get Free Influencers",
-    description="Get all free influencers or filter by id, username, platform, categories, or location.",
+    description="Get all free influencers with pagination using size and offset parameters, or filter by id, username, platform, categories, or location.",
     responses={
         200: {"description": "List of influencers"},
         404: {"description": "Influencer not found"}
@@ -34,6 +35,8 @@ async def get_influencers(
     platform: Optional[str] = Query(None, description="Filter by platform"),
     categories: Optional[str] = Query(None, description="Comma-separated categories"),
     location: Optional[str] = Query(None, description="Filter by location"),
+    size: int = Query(20, ge=1, le=1000, description="Number of influencers to return"),
+    offset: int = Query(0, ge=0, description="Number of influencers to skip"),
 ):
     if id:
         influencer = await service.get_influencer_by_id(id)
@@ -41,7 +44,8 @@ async def get_influencers(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Influencer not found")
         return {
             "data": [influencer],
-            "count": 1
+            "count": 1,
+            "offset": None
         }
 
     if username:
@@ -50,21 +54,25 @@ async def get_influencers(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Influencer not found")
         return {
             "data": [influencer],
-            "count": 1
+            "count": 1,
+            "offset": None
         }
 
     categories_list = None
     if categories:
         categories_list = [c.strip() for c in categories.split(",")]
 
-    influencers = await service.list_influencers(
+    influencers, next_offset = await service.list_influencers(
         platform=platform,
         categories=categories_list,
         location=location,
+        limit=size,
+        offset=offset,
     )
     return {
         "data": influencers,
-        "count": len(influencers)
+        "count": len(influencers),
+        "offset": next_offset
     }
 
 
@@ -87,6 +95,38 @@ async def create_influencer(request: CreateInfluencerRequest):
         return influencer
     except Exception as e:
         logger.error(f"Error creating influencer: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch(
+    "/{influencer_id}",
+    response_model=InfluencerResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update Free Influencer",
+    description="Update an existing free influencer (partial update).",
+    responses={
+        200: {"description": "Influencer updated successfully"},
+        404: {"description": "Influencer not found"}
+    },
+    tags=["free-influencers"]
+)
+async def update_influencer(
+    influencer_id: str,
+    request: UpdateInfluencerRequest,
+    platform: Optional[str] = Query("instagram", description="Platform (default: instagram)")
+):
+    """Update an existing free influencer by their ID (partial update)."""
+    data = request.model_dump(exclude_unset=True)
+    if not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+
+    try:
+        influencer = await service.update_influencer(influencer_id, data, platform)
+        return influencer
+    except Exception as e:
+        logger.error(f"Error updating influencer: {e}")
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Influencer not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 

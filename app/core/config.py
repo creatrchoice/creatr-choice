@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     
     # CORS
     CORS_ORIGINS: Union[str, List[str]] = ["*"]
+    CORS_ALLOW_CREDENTIALS: bool = True
     
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

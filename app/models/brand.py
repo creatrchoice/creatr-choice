@@ -1,6 +1,7 @@
 """Brand data models."""
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 
 
 class Brand(BaseModel):
@@ -13,3 +14,5 @@ class Brand(BaseModel):
     logo: Optional[str] = None
     description: Optional[str] = None
     categories: Optional[List[str]] = None
+    instaHandle: Optional[str] = None
+    created_at: Optional[datetime] = None

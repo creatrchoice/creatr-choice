@@ -1,6 +1,7 @@
 """Brand schemas - request (validated) and response (documented only)."""
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
+from datetime import datetime
 
 
 class CreateBrandRequest(BaseModel):
@@ -11,6 +12,8 @@ class CreateBrandRequest(BaseModel):
     logo: Optional[str] = Field(None, max_length=500, description="Logo URL")
     description: Optional[str] = Field(None, max_length=1000, description="Brand description")
     categories: Optional[List[str]] = Field(None, max_length=20, description="Brand categories")
+    instaHandle: Optional[str] = Field(None, max_length=100, description="Instagram handle")
+    created_at: Optional[datetime] = Field(None, description="Record creation timestamp")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -23,12 +26,33 @@ class CreateBrandRequest(BaseModel):
     })
 
 
+class UpdateBrandRequest(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200,
+                                description="Brand name", example="Nike")
+    logo: Optional[str] = Field(None, max_length=500, description="Logo URL")
+    description: Optional[str] = Field(None, max_length=1000, description="Brand description")
+    categories: Optional[List[str]] = Field(None, max_length=20, description="Brand categories")
+    instaHandle: Optional[str] = Field(None, max_length=100, description="Instagram handle")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "name": "Nike Updated",
+            "logo": "https://example.com/new-logo.png",
+            "description": "Updated sportswear brand"
+        }
+    })
+
+
 class BrandResponse(BaseModel):
     id: str
     name: str
     logo: Optional[str] = None
     description: Optional[str] = None
     categories: Optional[List[str]] = None
+    instaHandle: Optional[str] = None
+    isAvailable: bool = False
+    totalCount: int = 0
+    created_at: Optional[datetime] = None
 
     model_config = ConfigDict(
         extra="ignore",
@@ -46,12 +70,14 @@ class BrandResponse(BaseModel):
 class BrandListResponse(BaseModel):
     data: List[BrandResponse]
     count: int
+    offset: Optional[str] = Field(None, description="Offset for next page (null if no more data)")
 
     model_config = ConfigDict(
         extra="ignore",
         json_schema_extra={
         "example": {
             "data": [{"id": "brand_1", "name": "Nike"}, {"id": "brand_2", "name": "Adidas"}],
-            "count": 2
+            "count": 2,
+            "offset": None
         }
     })

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from urllib.parse import urlparse
 
-from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions, ContentSettings
 from azure.core.exceptions import AzureError
 
 from app.core.config import settings
@@ -144,9 +144,9 @@ class AzureStorageService:
             # Upload the file
             upload_kwargs = {}
             if content_type:
-                upload_kwargs["content_settings"] = {
-                    "content_type": content_type
-                }
+                upload_kwargs["content_settings"] = ContentSettings(
+                    content_type=content_type
+                )
             if metadata:
                 upload_kwargs["metadata"] = metadata
             

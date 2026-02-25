@@ -5,6 +5,7 @@ from typing import Optional
 
 from app.schemas.brand_schema import (
     CreateBrandRequest,
+    UpdateBrandRequest,
     BrandResponse,
     BrandListResponse,
 )
@@ -21,7 +22,7 @@ service = BrandService()
     "/",
     response_model=BrandListResponse,
     summary="Get Brands",
-    description="Get all brands or filter by id or name.",
+    description="Get all brands with pagination using size and offset parameters.",
     responses={
         200: {"description": "List of brands"},
         404: {"description": "Brand not found"}
@@ -31,6 +32,8 @@ service = BrandService()
 async def get_brands(
     id: Optional[str] = Query(None, description="Filter by brand ID"),
     name: Optional[str] = Query(None, description="Filter by brand name"),
+    size: int = Query(20, ge=1, le=1000, description="Number of brands to return"),
+    offset: int = Query(0, ge=0, description="Number of brands to skip"),
 ):
     if id:
         brand = await service.get_brand_by_id(id)
@@ -38,7 +41,8 @@ async def get_brands(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
         return {
             "data": [brand],
-            "count": 1
+            "count": 1,
+            "offset": None
         }
 
     if name:
@@ -47,13 +51,15 @@ async def get_brands(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
         return {
             "data": [brand],
-            "count": 1
+            "count": 1,
+            "offset": None
         }
 
-    brands = await service.list_brands()
+    brands, next_offset = await service.list_brands(limit=size, cursor=str(offset), offset=offset)
     return {
         "data": brands,
-        "count": len(brands)
+        "count": len(brands),
+        "offset": next_offset
     }
 
 
@@ -76,6 +82,34 @@ async def create_brand(request: CreateBrandRequest):
         return brand
     except Exception as e:
         logger.error(f"Error creating brand: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch(
+    "/{brand_id}",
+    response_model=BrandResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update Brand",
+    description="Update an existing brand (partial update).",
+    responses={
+        200: {"description": "Brand updated successfully"},
+        404: {"description": "Brand not found"}
+    },
+    tags=["brands"]
+)
+async def update_brand(brand_id: str, request: UpdateBrandRequest):
+    """Update an existing brand by its ID (partial update)."""
+    data = request.model_dump(exclude_unset=True)
+    if not data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+
+    try:
+        brand = await service.update_brand(brand_id, data)
+        return brand
+    except Exception as e:
+        logger.error(f"Error updating brand: {e}")
+        if "not found" in str(e).lower():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 

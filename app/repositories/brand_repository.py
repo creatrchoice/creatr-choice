@@ -1,5 +1,5 @@
 """Brand repository for Cosmos DB."""
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 
 from app.db.cosmos_db import CosmosDBClient
 from app.core.config import settings
@@ -110,34 +110,50 @@ class BrandRepository:
         await container.delete_item(item=brand_id, partition_key=brand_id)
         return True
 
-    async def list_all(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+    async def list_all(self, limit: int = 20, cursor: Optional[str] = None) -> tuple[List[Dict[str, Any]], Optional[str]]:
         """
-        List all brands with pagination.
+        List all brands with pagination using offset from cursor.
 
         Args:
             limit: Maximum number of brands to return
-            offset: Number of brands to skip
+            cursor: Offset encoded as cursor (base64 or plain number)
 
         Returns:
-            List of brands
+            Tuple of (list of brands, next cursor or None)
         """
         try:
             container = await self._get_container()
 
-            query = "SELECT * FROM c OFFSET @offset LIMIT @limit"
+            # Decode cursor to offset (cursor is just the offset number as string)
+            offset = 0
+            if cursor:
+                try:
+                    offset = int(cursor)
+                except (ValueError, TypeError):
+                    offset = 0
+
+            query = "SELECT * FROM c ORDER BY c.created_at ASC OFFSET @offset LIMIT @limit"
             parameters = [
                 {"name": "@offset", "value": offset},
                 {"name": "@limit", "value": limit}
             ]
 
             items = []
-            async for item in container.query_items(query=query, parameters=parameters):
+            async for item in container.query_items(
+                query=query,
+                parameters=parameters
+            ):
                 items.append(item)
 
-            return items
+            # Generate next cursor if we got a full page
+            next_cursor = None
+            if len(items) == limit:
+                next_cursor = str(offset + limit)
+
+            return items, next_cursor
         except Exception as e:
             if "Resource Not Found" in str(e) or "NotFound" in str(e):
-                return []
+                return [], None
             raise
 
     async def count(self) -> int:

@@ -67,6 +67,56 @@ class CreateInfluencerRequest(BaseModel):
     })
 
 
+class UpdateInfluencerRequest(BaseModel):
+    """Partial update request for an influencer."""
+    platform: Optional[str] = Field(None, min_length=1, max_length=20,
+                                     description="Social media platform", example="instagram")
+    platform_user_id: Optional[str] = Field(None, min_length=1, max_length=100,
+                                            description="User ID on platform")
+    username: Optional[str] = Field(None, min_length=1, max_length=50, pattern=r"^[a-zA-Z0-9_.]+$",
+                                    description="Username/handle")
+    full_name: Optional[str] = Field(None, min_length=1, max_length=100,
+                                     description="Full name")
+    bio: Optional[str] = Field(None, max_length=500, description="Profile bio")
+    is_private: Optional[bool] = Field(None, description="Whether account is private")
+    followers: Optional[int] = Field(None, ge=0, description="Number of followers")
+    following: Optional[int] = Field(None, ge=0, description="Number following")
+    post_count: Optional[int] = Field(None, ge=0, description="Number of posts")
+    categories: Optional[List[str]] = Field(None, max_length=10, description="Content categories")
+    location: Optional[str] = Field(None, max_length=100, description="Location")
+    profile_image: Optional[Dict[str, str]] = Field(None, description="Profile image URLs")
+    last_fetched_at: Optional[str] = Field(None, description="ISO 8601 datetime")
+
+    @field_validator("platform")
+    @classmethod
+    def validate_platform(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        valid = ["instagram", "twitter", "youtube", "tiktok", "linkedin"]
+        if v.lower() not in valid:
+            raise ValueError(f"platform must be one of: {', '.join(valid)}")
+        return v.lower()
+
+    @field_validator("last_fetched_at")
+    @classmethod
+    def validate_datetime(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        try:
+            datetime.fromisoformat(v.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("last_fetched_at must be valid ISO 8601 format")
+        return v
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "followers": 15000,
+            "bio": "Updated bio",
+            "categories": ["fitness", "travel", "lifestyle"]
+        }
+    })
+
+
 class InfluencerResponse(BaseModel):
     """Response model - no validation, just documentation."""
     id: str
@@ -108,6 +158,7 @@ class InfluencerListResponse(BaseModel):
     """Response for list of influencers."""
     data: List[InfluencerResponse]
     count: int = Field(..., description="Number of results")
+    offset: Optional[str] = Field(None, description="Offset for next page (null if no more data)")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -115,5 +166,6 @@ class InfluencerListResponse(BaseModel):
                 {"id": "infl_1", "username": "johndoe", "followers": 10000, "platform": "instagram"}
             ],
             "count": 1,
+            "offset": None
         }
     })

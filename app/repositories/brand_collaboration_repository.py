@@ -197,9 +197,34 @@ class BrandCollaborationRepository:
         await container.delete_item(item=collab_id)
         return True
 
-    async def count(self) -> int:
-        """Get total count of brand collaborations."""
-        container = await self._get_container()
-        query = "SELECT VALUE COUNT(1) FROM c"
-        items = [item async for item in container.query_items(query=query)]
-        return items[0] if items else 0
+    async def get_by_brand_ids(self, brand_ids: List[str]) -> Dict[str, int]:
+        """
+        Get all collaborations for multiple brands in a single query.
+
+        Args:
+            brand_ids: List of brand IDs
+
+        Returns:
+            Dict mapping brand_id to collaboration count
+        """
+        if not brand_ids:
+            return {}
+
+        try:
+            container = await self._get_container()
+
+            query = """
+                SELECT c.brand_id 
+                FROM c 
+                WHERE c.brand_id IN ({})
+            """.format(", ".join([f"'{bid}'" for bid in brand_ids]))
+
+            counts: Dict[str, int] = {bid: 0 for bid in brand_ids}
+            async for item in container.query_items(query=query):
+                counts[item["brand_id"]] = counts.get(item["brand_id"], 0) + 1
+
+            return counts
+        except Exception as e:
+            if "Resource Not Found" in str(e) or "NotFound" in str(e):
+                return {bid: 0 for bid in brand_ids}
+            raise
