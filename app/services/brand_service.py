@@ -1,9 +1,11 @@
 """Brand service for business logic."""
 from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime
+import time
 
 from app.repositories.brand_repository import BrandRepository
 from app.repositories.brand_collaboration_repository import BrandCollaborationRepository
+from app.core.constants import BRAND_ROTATION_START_DATE
 
 
 class BrandService:
@@ -32,8 +34,11 @@ class BrandService:
         return brands, next_cursor
     
     def _is_brand_available(self, index: int) -> bool:
-        """Determine if a brand is available based on its index."""
-        return index < 20
+        """Determine if a brand is available based on days since start date."""
+        current_time_ms = int(time.time() * 1000)
+        days_elapsed = (current_time_ms - BRAND_ROTATION_START_DATE) // (2 * 24 * 60 * 60 * 1000)
+        available_count = 20 + days_elapsed
+        return index < available_count
 
     async def create_brand(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new brand."""
