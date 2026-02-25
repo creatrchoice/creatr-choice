@@ -132,7 +132,7 @@ class BrandRepository:
                 except (ValueError, TypeError):
                     offset = 0
 
-            query = "SELECT * FROM c OFFSET @offset LIMIT @limit"
+            query = "SELECT * FROM c ORDER BY c.created_at ASC OFFSET @offset LIMIT @limit"
             parameters = [
                 {"name": "@offset", "value": offset},
                 {"name": "@limit", "value": limit}

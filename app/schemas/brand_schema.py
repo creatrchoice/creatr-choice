@@ -1,6 +1,7 @@
 """Brand schemas - request (validated) and response (documented only)."""
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
+from datetime import datetime
 
 
 class CreateBrandRequest(BaseModel):
@@ -12,6 +13,7 @@ class CreateBrandRequest(BaseModel):
     description: Optional[str] = Field(None, max_length=1000, description="Brand description")
     categories: Optional[List[str]] = Field(None, max_length=20, description="Brand categories")
     instaHandle: Optional[str] = Field(None, max_length=100, description="Instagram handle")
+    created_at: Optional[datetime] = Field(None, description="Record creation timestamp")
 
     model_config = ConfigDict(json_schema_extra={
         "example": {
@@ -48,6 +50,9 @@ class BrandResponse(BaseModel):
     description: Optional[str] = None
     categories: Optional[List[str]] = None
     instaHandle: Optional[str] = None
+    isAvailable: bool = False
+    totalCount: int = 0
+    created_at: Optional[datetime] = None
 
     model_config = ConfigDict(
         extra="ignore",

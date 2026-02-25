@@ -55,7 +55,7 @@ async def get_brands(
             "offset": None
         }
 
-    brands, next_offset = await service.list_brands(limit=size, cursor=str(offset))
+    brands, next_offset = await service.list_brands(limit=size, cursor=str(offset), offset=offset)
     return {
         "data": brands,
         "count": len(brands),

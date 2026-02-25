@@ -1,7 +1,9 @@
 """Brand service for business logic."""
 from typing import List, Optional, Dict, Any, Tuple
+from datetime import datetime
 
 from app.repositories.brand_repository import BrandRepository
+from app.repositories.brand_collaboration_repository import BrandCollaborationRepository
 
 
 class BrandService:
@@ -9,17 +11,34 @@ class BrandService:
 
     def __init__(self):
         self.repository = BrandRepository()
+        self.collaboration_repository = BrandCollaborationRepository()
 
     async def list_brands(
         self,
         limit: int = 20,
-        cursor: Optional[str] = None
+        cursor: Optional[str] = None,
+        offset: int = 0
     ) -> tuple[List[Dict[str, Any]], Optional[str]]:
         """List all brands with cursor-based pagination."""
-        return await self.repository.list_all(limit=limit, cursor=cursor)
+        brands, next_cursor = await self.repository.list_all(limit=limit, cursor=cursor)
+        
+        brand_ids = [brand["id"] for brand in brands]
+        counts = await self.collaboration_repository.get_by_brand_ids(brand_ids)
+        
+        for idx, brand in enumerate(brands):
+            brand["isAvailable"] = self._is_brand_available(idx + offset)
+            brand["totalCount"] = counts.get(brand["id"], 0)
+        
+        return brands, next_cursor
+    
+    def _is_brand_available(self, index: int) -> bool:
+        """Determine if a brand is available based on its index."""
+        return index < 20
 
     async def create_brand(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new brand."""
+        if "created_at" not in data or data["created_at"] is None:
+            data["created_at"] = datetime.utcnow().isoformat()
         return await self.repository.create(data)
 
     async def get_brand_by_id(self, brand_id: str) -> Optional[Dict[str, Any]]:
