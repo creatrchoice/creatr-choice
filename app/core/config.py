@@ -93,6 +93,11 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
     
+    # Brand Rotation Settings
+    BRAND_ROTATION_OVERRIDE_ALL: bool = False
+    BRAND_ROTATION_DAYS_PER_BRAND: int = 2
+    BRAND_ROTATION_START_DATE: Optional[int] = None
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

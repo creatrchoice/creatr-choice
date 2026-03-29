@@ -6,6 +6,7 @@ import time
 from app.repositories.brand_repository import BrandRepository
 from app.repositories.brand_collaboration_repository import BrandCollaborationRepository
 from app.core.constants import BRAND_ROTATION_START_DATE
+from app.core.config import settings
 
 
 class BrandService:
@@ -35,8 +36,14 @@ class BrandService:
     
     def _is_brand_available(self, index: int) -> bool:
         """Determine if a brand is available based on days since start date."""
+        if settings.BRAND_ROTATION_OVERRIDE_ALL:
+            return True
+        
+        days_per_brand = settings.BRAND_ROTATION_DAYS_PER_BRAND
+        start_date = settings.BRAND_ROTATION_START_DATE or BRAND_ROTATION_START_DATE
+        
         current_time_ms = int(time.time() * 1000)
-        days_elapsed = (current_time_ms - BRAND_ROTATION_START_DATE) // (2 * 24 * 60 * 60 * 1000)
+        days_elapsed = (current_time_ms - start_date) // (days_per_brand * 24 * 60 * 60 * 1000)
         available_count = 20 + days_elapsed
         return index < available_count
 
