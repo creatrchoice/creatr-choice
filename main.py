@@ -107,6 +107,10 @@ app.include_router(api_router, prefix="/api/v1")
 async def startup_event():
     """Initialize services on startup."""
     import asyncio
+    import os
+    import sys
+    import subprocess
+    import logging
     from app.services.category_discovery import CategoryDiscoveryService
 
     # Pre-populate category cache in background (non-blocking)
@@ -123,6 +127,24 @@ async def startup_event():
 
     # Start preloading in background
     asyncio.create_task(preload_categories())
+
+    # Start background worker for add-brand-infl queue
+    def start_background_worker():
+        try:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            worker_script = os.path.join(script_dir, "scripts", "worker.py")
+            
+            process = subprocess.Popen(
+                [sys.executable, worker_script],
+            )
+            print(f"✅ Background worker started (PID: {process.pid})")
+        except Exception as e:
+            print(f"⚠️  Background worker failed to start: {e}")
+
+    # Run worker in a separate thread so it doesn't block startup
+    import threading
+    worker_thread = threading.Thread(target=start_background_worker, daemon=True)
+    worker_thread.start()
 
 
 @app.get("/")
