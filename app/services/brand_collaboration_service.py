@@ -107,14 +107,31 @@ class BrandCollaborationService:
             await self._set_cache(cache_key, [])
             return [], False
 
+        influencers_by_platform: Dict[str, List[str]] = {}
+        for collab in collaborations:
+            influencer_id: Optional[str] = collab.get("influencer_id")
+            if not influencer_id:
+                continue
+            platform = collab.get("platform") or "instagram"
+            influencers_by_platform.setdefault(platform, []).append(influencer_id)
+
+        all_influencers = []
+        for platform, ids in influencers_by_platform.items():
+            if ids:
+                influencers = await self.influencer_repo.get_many_by_ids(ids, platform)
+                for infl in influencers:
+                    all_influencers.append((platform, infl))
+
+        infl_lookup = {(infl.get("id"), platform): infl for platform, infl in all_influencers}
+
         result = []
         for collab in collaborations:
             influencer_id: Optional[str] = collab.get("influencer_id")
             if not influencer_id:
                 continue
 
-            platform = collab.get("platform")
-            influencer = await self.influencer_repo.get_by_id(influencer_id, platform or "instagram")
+            platform = collab.get("platform") or "instagram"
+            influencer = infl_lookup.get((influencer_id, platform))
 
             if not influencer:
                 continue
