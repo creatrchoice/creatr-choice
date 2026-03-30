@@ -128,7 +128,7 @@ async def startup_event():
     # Start preloading in background
     asyncio.create_task(preload_categories())
 
-    # Start background worker for add-brand-infl queue
+    # Start background worker for add-brand-infl queue (only if enabled)
     def start_background_worker():
         try:
             script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -141,10 +141,12 @@ async def startup_event():
         except Exception as e:
             print(f"⚠️  Background worker failed to start: {e}")
 
-    # Run worker in a separate thread so it doesn't block startup
-    import threading
-    worker_thread = threading.Thread(target=start_background_worker, daemon=True)
-    worker_thread.start()
+    if settings.ENABLE_BACKGROUND_WORKER:
+        import threading
+        worker_thread = threading.Thread(target=start_background_worker, daemon=True)
+        worker_thread.start()
+    else:
+        print("ℹ️  Background worker is disabled (set ENABLE_BACKGROUND_WORKER=true to enable)")
 
 
 @app.get("/")
