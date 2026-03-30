@@ -32,6 +32,8 @@ class BrandService:
             brand["isAvailable"] = self._is_brand_available(idx + offset)
             brand["totalCount"] = counts.get(brand["id"], 0)
         
+        brands = [brand for brand in brands if brand.get("totalCount", 0) >= 10]
+        
         return brands, next_cursor
     
     def _is_brand_available(self, index: int) -> bool:

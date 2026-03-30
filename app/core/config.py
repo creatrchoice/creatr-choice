@@ -92,6 +92,7 @@ class Settings(BaseSettings):
     # Application Settings
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
+    ENABLE_BACKGROUND_WORKER: bool = False
     
     # Brand Rotation Settings
     BRAND_ROTATION_OVERRIDE_ALL: bool = False
