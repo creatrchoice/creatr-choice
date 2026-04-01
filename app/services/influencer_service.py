@@ -12,6 +12,8 @@ from app.models.search import (
     SearchFilters,
     InfluencerSearchResponse as EnhancedSearchResponse,
     InfluencerWithScore,
+    BrandCollabSearchRequest,
+    BrandCollabSearchResponse,
 )
 from app.models.categories import CategoryMetadata
 from app.models.conversation import ChatSearchRequest, ChatSearchResponse
@@ -20,6 +22,7 @@ from app.services.nlp_agent import NLPAgent
 from app.services.embedding_service import EmbeddingService
 from app.services.category_discovery import CategoryDiscoveryService
 from app.services.conversation_service import ConversationService
+from app.services.brand_collab_ranker import brand_collab_ranker
 from app.repositories.influencer_repository import InfluencerRepository
 from app.models.influencer_data import InfluencerData
 
@@ -271,3 +274,116 @@ class InfluencerService:
         6. System: Returns further refined results
         """
         return await self.conversation_service.search_chat(request)
+    
+    async def search_brand_collab(
+        self, request: BrandCollabSearchRequest
+    ) -> BrandCollabSearchResponse:
+        """
+        Search for influencers based on brand collaborations.
+        
+        This uses a brand-centric approach:
+        1. LLM extracts target brand categories from prompt
+        2. Find brands matching those categories
+        3. Find brand_collaborations for those brands
+        4. Score and rank influencers based on:
+           - Category match (weighted by LLM)
+           - Follower count
+           - Post volume
+           - Collaboration count
+        """
+        import time
+        start_time = time.time()
+        
+        # Step 1: Analyze prompt to extract target categories with weights and filters
+        analysis = await self.nlp_agent.analyze_query(request.prompt)
+        
+        # Step 2: Extract target categories and filters from analysis
+        target_categories = []
+        if analysis.target_categories:
+            target_categories = [
+                {"name": cat.name, "weight": cat.weight}
+                for cat in analysis.target_categories
+            ]
+        
+        # Fallback: if no target categories, use all categories with default weight
+        if not target_categories:
+            from app.config import scoring_config
+            target_categories = [
+                {"name": scoring_config.FALLBACK_CATEGORY, "weight": 1.0}
+            ]
+        
+        # Extract filters from analysis
+        filters = {}
+        if analysis.extracted_filters:
+            ef = analysis.extracted_filters
+            if ef.min_followers:
+                filters["min_followers"] = ef.min_followers
+            if ef.max_followers:
+                filters["max_followers"] = ef.max_followers
+            if ef.platform:
+                filters["platform"] = ef.platform
+            if ef.city:
+                filters["city"] = ef.city
+        
+        # Step 3: Search using brand collab ranker
+        results, total = await brand_collab_ranker.search_brand_collab(
+            prompt=request.prompt,
+            target_categories=target_categories,
+            filters=filters,
+            limit=request.limit,
+            offset=request.offset,
+        )
+        
+        # Step 4: Fetch brand details for brand_collaborations field
+        # TODO: Could optimize by caching brand names
+        brand_info = {}
+        for infl in results:
+            for brand_id in infl.get("brand_ids", [])[:5]:  # Limit to 5 brands per influencer
+                if brand_id not in brand_info:
+                    brand_info[brand_id] = brand_id  # Placeholder - fetch real names in production
+        
+        # Convert to response model
+        from app.models.search import InfluencerWithBrandScore, BrandCollaborationInfo
+        from app.models.influencer import Platform
+        
+        influencers = []
+        for infl in results:
+            # Get brand collab info
+            brand_collabs = []
+            unique_brand_ids = list(set(infl.get("brand_ids", [])))
+            for brand_id in unique_brand_ids[:5]:
+                brand_collabs.append(BrandCollaborationInfo(
+                    brand_id=brand_id,
+                    brand_name=brand_info.get(brand_id, brand_id),
+                    brand_categories=[]
+                ))
+            
+            # Use actual data from Redis instead of influencer_id
+            username = infl.get("username") or str(infl.get("influencer_id", ""))
+            display_name = infl.get("full_name") or username
+            
+            influencers.append(InfluencerWithBrandScore(
+                id=str(infl.get("influencer_id", "")),
+                username=username,
+                display_name=display_name,
+                platform=Platform.from_string(infl.get("platform", "instagram")),
+                followers=infl.get("followers", 0),
+                following=None,
+                posts=infl.get("post_count"),
+                profile_image_url=infl.get("profile_image_url"),
+                bio=infl.get("bio") or None,
+                weighted_score=infl.get("normalized_score", infl.get("weighted_score", 0)),
+                categories_matched=infl.get("matched_categories", []),
+                brand_collaborations=brand_collabs,
+            ))
+        
+        elapsed = time.time() - start_time
+        
+        return BrandCollabSearchResponse(
+            influencers=influencers,
+            total=total,
+            limit=request.limit,
+            offset=request.offset,
+            has_more=(request.offset + request.limit) < total,
+            search_time_ms=round(elapsed * 1000, 2),
+        )

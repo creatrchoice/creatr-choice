@@ -14,6 +14,8 @@ from app.models.search import (
     NaturalLanguageSearchRequest,
     HybridSearchRequest,
     InfluencerSearchResponse as EnhancedSearchResponse,
+    BrandCollabSearchRequest,
+    BrandCollabSearchResponse,
 )
 from app.models.conversation import ChatSearchRequest, ChatSearchResponse
 from app.models.categories import CategoryMetadata
@@ -612,6 +614,69 @@ async def search_chat(request: ChatSearchRequest):
     You'll receive a conversation_id to maintain context across requests.
     """
     results = await influencer_service.search_chat(request)
+    return results
+
+
+@router.post(
+    "/search/brand-collab",
+    response_model=BrandCollabSearchResponse,
+    summary="Brand Collaboration Search",
+    description="Search for influencers based on brand collaboration history. Uses brand categories to find relevant influencers.",
+    responses={
+        200: {
+            "description": "Search results with brand collaboration scores",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "influencers": [
+                            {
+                                "id": "30746588792",
+                                "username": "tusharkakkar_",
+                                "display_name": "Tushar kakkar",
+                                "platform": "instagram",
+                                "followers": 103863,
+                                "weighted_score": 0.92,
+                                "categories_matched": ["Fashion & Lifestyle"],
+                                "brand_collaborations": [
+                                    {"brand_id": "snitch", "brand_name": "Snitch", "brand_categories": ["Fashion & Lifestyle"]}
+                                ]
+                            }
+                        ],
+                        "total": 347,
+                        "limit": 50,
+                        "offset": 0,
+                        "has_more": True,
+                        "search_time_ms": 125.3
+                    }
+                }
+            }
+        }
+    },
+    tags=["influencers", "search"]
+)
+async def search_brand_collab(request: BrandCollabSearchRequest):
+    """
+    Search for influencers based on brand collaboration history.
+    
+    This is a brand-centric search approach:
+    1. Your prompt is analyzed to extract brand categories
+    2. Finds brands matching those categories
+    3. Finds influencers who have collaborated with those brands
+    4. Ranks influencers based on:
+       - Category match (weighted by relevance from prompt)
+       - Number of brand collaborations in target categories
+       - Follower count
+       - Post volume
+    
+    **How to use:**
+    - "Find influencers for my finance brand" → Matches influencers who've worked with Finance brands
+    - "fashion and beauty creators" → Finds influencers collabed with Fashion & Beauty brands
+    - "tech influencers for my startup" → Finds influencers who've worked with Tech brands
+    
+    **Before using:**
+    Run the admin refresh-rankings endpoint first to populate the Redis cache with category rankings.
+    """
+    results = await influencer_service.search_brand_collab(request)
     return results
 
 

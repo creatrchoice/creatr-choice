@@ -2,8 +2,10 @@
 import os
 import logging
 from fastapi import APIRouter, Body, Header, HTTPException, status
+from typing import Dict, Any
 
 from app.services.queue_service import queue_service
+from app.services.brand_collab_ranker import brand_collab_ranker
 
 logger = logging.getLogger(__name__)
 
@@ -70,3 +72,37 @@ async def add_brand_to_queue(
         "max_posts": max_posts,
         "max_api_calls": max_api_calls
     }
+
+
+@router.post(
+    "/influencers/refresh-rankings",
+    status_code=status.HTTP_200_OK,
+    summary="Refresh influencer category rankings",
+    description="Refresh all category rankings in Redis based on brand collaboration data"
+)
+async def refresh_influencer_rankings(
+    admin_key: str = Header(..., alias="ADMIN_KEY", description="Admin API key for authentication")
+) -> Dict[str, Any]:
+    """Refresh all category rankings in Redis."""
+    
+    # Validate admin key
+    expected_key = os.getenv("ADMIN_KEY")
+    if not expected_key:
+        logger.error("ADMIN_KEY not configured on server")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Admin key not configured"
+        )
+    
+    if admin_key != expected_key:
+        logger.warning(f"Invalid admin key attempt")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid admin key"
+        )
+    
+    logger.info("Starting category rankings refresh via admin API")
+    
+    result = await brand_collab_ranker.refresh_category_rankings()
+    
+    return result

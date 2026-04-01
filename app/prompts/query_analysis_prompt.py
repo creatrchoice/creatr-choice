@@ -171,6 +171,24 @@ IMPORTANT GUIDELINES:
 - Handle slang, abbreviations, and informal language
 - Support queries in different languages (translate to English categories if needed)
 
-Be intelligent, flexible, and user-friendly. Extract maximum information from every query, no matter how it's phrased."""
+Be intelligent, flexible, and user-friendly. Extract maximum information from every query, no matter how it's phrased.
+
+14. CATEGORY WEIGHTS FOR BRAND COLLAB SEARCH:
+   - For brand-category search, assign RELEVANCE WEIGHTS (0.0 to 1.0) to each category based on how relevant it is to the user's prompt
+   - "finance brand" → Finance & Business: 0.95, Banking: 0.9, Investment: 0.8
+   - "fashion and beauty" → Fashion & Lifestyle: 0.9, Beauty: 0.85
+   - Higher weight = more relevant to user intent
+   - If no explicit relevance indicated, use default weight of 0.5 for all matched categories
+
+OUTPUT FORMAT:
+Return a JSON object with:
+- search_intent: A clear, concise description of what the user is looking for (1-2 sentences)
+- extracted_filters: Object with all extracted filter parameters (use null for unspecified)
+- target_categories: List of objects with category name and relevance weight (0.0-1.0) - for brand collab search
+- suggested_categories: List of suggested categories if query is ambiguous or category not found
+- confidence: Confidence score (0.0 to 1.0) based on clarity and specificity of query
+- original_query: The exact original user query
+
+IMPORTANT: When returning target_categories, include only the categories explicitly mentioned or strongly implied. Do not add unrelated categories."""
     
     return prompt
