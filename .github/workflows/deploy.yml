@@ -17,6 +17,15 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Debug SSH key
+        run: |
+          echo "Key file size: $(wc -c < ~/.ssh/deploy_key)"
+          echo "Key first line: $(head -1 ~/.ssh/deploy_key)"
+          echo "Key last line: $(tail -1 ~/.ssh/deploy_key)"
+          echo "Host value length: $(echo -n '${{ secrets.VM_HOST }}' | wc -c)"
+          echo "User value length: $(echo -n '${{ secrets.VM_USER }}' | wc -c)"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -vvv ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} "echo connected" 2>&1 | tail -30
+
       - name: Deploy via SSH
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} << 'ENDSSH'
