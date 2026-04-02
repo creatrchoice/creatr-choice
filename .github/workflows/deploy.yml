@@ -1,0 +1,46 @@
+name: Deploy to Azure VM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd ~/creatr-choice
+
+            # Pull latest code
+            git pull origin main
+
+            # Make sure Docker is running
+            sudo systemctl start docker
+
+            # Rebuild and restart containers
+            docker compose down
+            docker compose up --build -d
+
+            # Wait for health check (port 8000)
+            echo "Waiting for API to start..."
+            for i in $(seq 1 30); do
+              if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+                echo "API is healthy!"
+                break
+              fi
+              sleep 2
+            done
+
+            # Show running containers
+            docker compose ps
+
+            # Cleanup old images
+            docker image prune -f
