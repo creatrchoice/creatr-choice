@@ -82,3 +82,67 @@ class InfluencerSearchResponse(BaseModel):
                 "search_time_ms": 250.5
             }
         }
+
+
+class BrandCollabSearchRequest(BaseModel):
+    """Brand collaboration search request."""
+    prompt: str = Field(..., description="Free-form text query describing the desired influencers", example="Find influencers for my finance brand")
+    limit: int = Field(50, ge=1, le=100, description="Number of results to return", example=50)
+    offset: int = Field(0, ge=0, description="Pagination offset", example=0)
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "prompt": "Find influencers for my finance brand in Mumbai",
+                "limit": 50,
+                "offset": 0
+            }
+        }
+
+
+class BrandCollaborationInfo(BaseModel):
+    """Brand collaboration info for influencer."""
+    brand_id: str
+    brand_name: str
+    brand_categories: List[str] = []
+
+
+class InfluencerWithBrandScore(Influencer):
+    """Influencer with brand collab score."""
+    weighted_score: float = Field(..., description="Weighted score from brand collab search (0-1)", example=0.92)
+    categories_matched: List[str] = Field(default_factory=list, description="Categories matched from the search")
+    brand_collaborations: List[BrandCollaborationInfo] = Field(default_factory=list, description="Brand collaborations for this influencer")
+
+
+class BrandCollabSearchResponse(BaseModel):
+    """Brand collaboration search response."""
+    influencers: List[InfluencerWithBrandScore] = Field(..., description="List of influencers with brand collab scores")
+    total: int = Field(..., description="Total number of matching influencers", example=347)
+    limit: int = Field(..., description="Number of results per page", example=50)
+    offset: int = Field(..., description="Pagination offset", example=0)
+    has_more: bool = Field(..., description="Whether there are more results available", example=True)
+    search_time_ms: Optional[float] = Field(None, description="Search execution time in milliseconds")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "influencers": [
+                    {
+                        "id": "30746588792",
+                        "username": "tusharkakkar_",
+                        "platform": "instagram",
+                        "followers": 103863,
+                        "weighted_score": 0.92,
+                        "categories_matched": ["Finance & Business", "Investment"],
+                        "brand_collaborations": [
+                            {"brand_id": "snitch", "brand_name": "Snitch", "brand_categories": ["Fashion & Lifestyle"]}
+                        ]
+                    }
+                ],
+                "total": 347,
+                "limit": 50,
+                "offset": 0,
+                "has_more": True,
+                "search_time_ms": 125.3
+            }
+        }

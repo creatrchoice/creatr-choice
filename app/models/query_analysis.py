@@ -3,6 +3,12 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 
+class TargetCategory(BaseModel):
+    """Target category with relevance weight for brand collab search."""
+    name: str = Field(..., description="Category name")
+    weight: float = Field(..., ge=0.0, le=1.0, description="Relevance weight (0.0-1.0)")
+
+
 class ExtractedFilters(BaseModel):
     """Filters extracted from natural language query."""
     platform: Optional[str] = Field(None, description="Social media platform")
@@ -25,6 +31,7 @@ class QueryAnalysisResult(BaseModel):
     """Result of NLP query analysis."""
     search_intent: str = Field(..., description="Understanding of what the user is looking for")
     extracted_filters: ExtractedFilters = Field(..., description="Extracted search parameters")
+    target_categories: Optional[List[TargetCategory]] = Field(None, description="Target categories with weights for brand collab search")
     suggested_categories: Optional[List[str]] = Field(None, description="Suggested categories if query is ambiguous")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score of extraction")
     original_query: str = Field(..., description="Original user query")
